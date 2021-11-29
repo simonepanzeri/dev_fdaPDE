@@ -24,6 +24,7 @@
 #include <cmath>
 
 #include "eigen_library/Eigen/Sparse"
+//#include "eigen_library/Eigen/SparseLU"
 #include "eigen_library/Eigen/Dense"
 #include "eigen_library/Eigen/StdVector"
 #include "eigen_library/Eigen/IterativeLinearSolvers"

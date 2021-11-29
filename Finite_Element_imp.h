@@ -1,5 +1,5 @@
 //
-// Created by simon on 26/11/2021.
+// Created by simonepanzeri on 26/11/2021.
 //
 
 #ifndef DEV_FDAPDE_FINITE_ELEMENT_IMP_H

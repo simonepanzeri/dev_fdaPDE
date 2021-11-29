@@ -19,8 +19,7 @@ void Assembler::operKernel(EOExpr<A> oper, const MeshHandler<ORDER,mydim,ndim>& 
     std::vector<UInt> identifiers;
     identifiers.reserve(NBASES);
 
-    for(int t = 0; t < mesh.num_elements(); ++t){
-
+    for(int t = 0; t < mesh.num_elements(); ++t) {
         fe.updateElement(mesh.getElement(t));
 
         // Vector of vertices indices (link local to global indexing system)

@@ -9,6 +9,9 @@
 #include "Mesh_Objects.h"
 #include "Spline.h"
 #include "Param_Functors.h"
+#include "Pde_Expression_Templates.h"
+#include "Finite_Element.h"
+#include "Integration.h"
 
 //Forward declarations to avoid unnecessary includes
 template <UInt ORDER, UInt mydim, UInt ndim>
@@ -34,7 +37,7 @@ struct Assembler{
 
     //Return triplets vector
     template<UInt ORDER, UInt mydim, UInt ndim, typename A>
-    static void operKernel(EOExpr<A> oper,const MeshHandler<ORDER,mydim,ndim>& mesh,
+    static void operKernel(EOExpr<A> oper, const MeshHandler<ORDER,mydim,ndim>& mesh,
                            FiniteElement<ORDER,mydim,ndim>& fe, SpMat& OpMat);
 
     template<UInt ORDER, UInt mydim, UInt ndim>

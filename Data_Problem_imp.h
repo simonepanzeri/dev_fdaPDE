@@ -6,6 +6,7 @@
 #define DEV_FDAPDE_DATA_PROBLEM_IMP_H
 
 #include "Integration.h"
+#include "Matrix_Assembler.h"
 
 template<UInt ORDER, UInt mydim, UInt ndim>
 DataProblem<ORDER, mydim, ndim>::DataProblem(const std::vector<Point<ndim>>& data, const UInt& order,
@@ -16,30 +17,34 @@ DataProblem<ORDER, mydim, ndim>::DataProblem(const std::vector<Point<ndim>>& dat
                                              const RIntegerMatrix& elements, const RIntegerMatrix& neighbors, bool isTime) :
     deData_(data, order, fvec, heatStep, heatIter, lambda, nfolds, nsim, stepProposals, tol1, tol2, print, search),
     mesh_(points, sides, elements, neighbors, search) {
-    /*
+
+    std::vector<Point<ndim>>& data_ = deData_.data();
+
     // PROJECTION
     if(mydim == 2 && ndim == 3){
         std::cout << "##### DATA PROJECTION #####\n";
-        projection<ORDER, mydim, ndim> projection(mesh_, data);
-        data = projection.computeProjection();
+
+        projection<ORDER, mydim, ndim> projection(mesh_, data_);
+        data_ = projection.computeProjection();
     }
 
     // REMOVE POINTS NOT IN THE DOMAIN
-    for(auto it = data.begin(); it != data.end(); ){
-        Element<EL_NNODES, mydim, ndim> tri_activated = mesh_.findLocation(data[it - data.begin()]);
+    for(auto it = data_.begin(); it != data_.end(); ){
+        Element<EL_NNODES, mydim, ndim> tri_activated = mesh_.findLocation(data_[it - data_.begin()]);
         if(tri_activated.getId() == Identifier::NVAL)
         {
-            it = data.erase(it);
+            it = data_.erase(it);
             std::cout << "WARNING: an observation is not in the domain. It is removed and the algorithm proceeds.\n";
         }
         else {
             it++;
         }
     }
-    */
+
     // FILL MATRICES
     fillFEMatrices();
     fillPsiQuad();
+
     if(!isTime)   //!***
         fillGlobalPsi(); //!***
 }
@@ -64,7 +69,7 @@ void DataProblem<ORDER, mydim, ndim>::fillFEMatrices(){
     Eigen::SparseLU<SpMat> solver;
     solver.compute(R0_);
     auto X2 = solver.solve(R1_);
-    P_ = R1_.transpose()* X2;
+    P_ = R1_.transpose() * X2;
 }
 
 
@@ -129,7 +134,8 @@ DataProblem<ORDER, mydim, ndim>::computePsi(const std::vector<UInt>& indices) co
             for(UInt node = 0; node < EL_NNODES ; ++node)
             {
                 Real evaluator = tri_activated.evaluate_point(deData_.data(*it), Eigen::Matrix<Real,EL_NNODES,1>::Unit(node));
-                triplets.emplace_back(it-indices.cbegin(), tri_activated[node].getId(), evaluator);
+                //std::cout << it-indices.cbegin() << " " << tri_activated[node].getId() << ": " << evaluator << std::endl;
+                triplets.emplace_back(it-indices.cbegin(), tri_activated[node].getId()-1, evaluator);
             }
         }
     }
@@ -147,7 +153,7 @@ DataProblem<ORDER, mydim, ndim>::computePsi(const std::vector<UInt>& indices) co
 // #####################################################################################################################
 
 template<UInt ORDER, UInt mydim, UInt ndim>
-DataProblem_time<ORDER, mydim, ndim>::DataProblem_time(const std::vector<Point<ndim>>& data, std::vector<Real>& data_time,
+DataProblem_time<ORDER, mydim, ndim>::DataProblem_time(const std::vector<Point<ndim>>& data, const std::vector<Real>& data_time,
                                                        const UInt& order, const VectorXr& fvec, Real heatStep, UInt heatIter,
                                                        const std::vector<Real>& lambda, const UInt& nfolds, const UInt& nsim,
                                                        const std::vector<Real>& stepProposals, Real tol1, Real tol2, bool print,
@@ -159,11 +165,11 @@ DataProblem_time<ORDER, mydim, ndim>::DataProblem_time(const std::vector<Point<n
         deData_time_(data, data_time), mesh_time_(mesh_time), spline(mesh_time) {
     //! Last part to compute the space matrices
     fillGlobalPsi();
+
     //! Computation of time matrices
     fillGlobalPhi();
     fillTimeMass();
     fillTimeSecondDerivative();
-    fillPhiQuad();
 
     //! Assembling space-time matrices
     Upsilon_ = computeUpsilon(this->GlobalPsi_, GlobalPhi_, deData_time_.getMap());
@@ -171,7 +177,7 @@ DataProblem_time<ORDER, mydim, ndim>::DataProblem_time(const std::vector<Point<n
 
 template<UInt ORDER, UInt mydim, UInt ndim>
 void DataProblem_time<ORDER, mydim, ndim>::fillGlobalPsi() {
-    std::vector <UInt> v=deData_time_.getID_noDup();
+    std::vector <UInt> v = deData_time_.getID_noD();
     this->GlobalPsi_ = this->computePsi(v);
 }
 
@@ -189,7 +195,7 @@ void DataProblem_time<ORDER, mydim, ndim>::fillGlobalPhi(void)
     {
         for(UInt j = 0; j<M; ++j)
         {
-            value = spline.BasisFunction(j, this->deData_time.data_noD()[i]);
+            value = spline.BasisFunction(j, this->deData_time_.data_noD()[i]);
             if(value != 0)
             {
                 GlobalPhi_.coeffRef(i,j) = value;

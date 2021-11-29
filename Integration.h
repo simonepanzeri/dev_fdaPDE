@@ -10,20 +10,20 @@
 
 struct IntegratorTriangleP1 {
     //Number of nodes
-    static constexpr UInt NNODES = 1;
-    static constexpr std::array<Real, NNODES> WEIGHTS{{1}};
+    inline static constexpr UInt NNODES = 1;
+    inline static constexpr std::array<Real, NNODES> WEIGHTS{{1}};
     //Point locations (in barycentric coordinates)
-    static constexpr std::array<Point<2>, NNODES> NODES {
+    inline static constexpr std::array<Point<2>, NNODES> NODES {
         Point<2>({1./3, 1./3})
     };
 };
 
 struct IntegratorTriangleP2 {
     //Number of nodes
-    static constexpr UInt NNODES = 3;
-    static constexpr std::array<Real, NNODES> WEIGHTS{{1./3, 1./3, 1./3}};
+    inline static constexpr UInt NNODES = 3;
+    inline static constexpr std::array<Real, NNODES> WEIGHTS{{1./3, 1./3, 1./3}};
     //Point locations (in barycentric coordinates)
-    static constexpr std::array<Point<2>, NNODES> NODES {
+    inline static constexpr std::array<Point<2>, NNODES> NODES {
             Point<2>({1./6, 1./6}),
             Point<2>({2./3, 1./6}),
             Point<2>({1./6, 2./3})
@@ -32,8 +32,8 @@ struct IntegratorTriangleP2 {
 
 struct IntegratorTriangleP4 {
     //Number of nodes
-    static constexpr UInt NNODES = 6;
-    static constexpr std::array<Real, NNODES> WEIGHTS {
+    inline static constexpr UInt NNODES = 6;
+    inline static constexpr std::array<Real, NNODES> WEIGHTS {
             {0.223381589678011,
                     0.223381589678011,
                     0.223381589678011,
@@ -42,7 +42,7 @@ struct IntegratorTriangleP4 {
                     0.109951743655322}
     };
     //Point locations (in barycentric coordinates)
-    static constexpr std::array<Point<2>, NNODES> NODES {
+    inline static constexpr std::array<Point<2>, NNODES> NODES {
             Point<2>({0.445948490915965, 0.445948490915965}),
             Point<2>({0.445948490915965, 0.108103018168070}),
             Point<2>({0.108103018168070, 0.445948490915965}),
@@ -54,8 +54,8 @@ struct IntegratorTriangleP4 {
 
 struct IntegratorTriangleP5 {
     //Number of nodes
-    static constexpr UInt NNODES = 7;
-    static constexpr std::array<Real, NNODES> WEIGHTS{
+    inline static constexpr UInt NNODES = 7;
+    inline static constexpr std::array<Real, NNODES> WEIGHTS{
             {0.225000000000000,
                     0.125939180544827,
                     0.125939180544827,
@@ -65,7 +65,7 @@ struct IntegratorTriangleP5 {
                     0.132394152788506}
     };
     //Point locations (in barycentric coordinates)
-    static constexpr std::array<Point<2>, NNODES> NODES {
+    inline static constexpr std::array<Point<2>, NNODES> NODES {
             Point<2>({0.333333333333333, 0.333333333333333}),
             Point<2>({0.101286507323456, 0.101286507323456}),
             Point<2>({0.101286507323456, 0.797426985353087}),
@@ -79,10 +79,10 @@ struct IntegratorTriangleP5 {
 
 struct IntegratorTetrahedronP1 {
     //Number of nodes
-    static constexpr UInt NNODES = 1;
-    static constexpr std::array<Real,NNODES> WEIGHTS{{1}};
+    inline static constexpr UInt NNODES = 1;
+    inline static constexpr std::array<Real,NNODES> WEIGHTS{{1}};
     //Point locations (in barycentric coordinates)
-    static constexpr std::array<Point<3>, NNODES> NODES {
+    inline static constexpr std::array<Point<3>, NNODES> NODES {
             Point<3>({1./4, 1./4, 1./4})
     };
 };
@@ -90,10 +90,10 @@ struct IntegratorTetrahedronP1 {
 
 struct IntegratorTetrahedronP2 {
     //Number of nodes
-    static constexpr UInt NNODES = 4;
-    static constexpr std::array<Real, NNODES> WEIGHTS{{1./4, 1./4, 1./4, 1./4}};
+    inline static constexpr UInt NNODES = 4;
+    inline static constexpr std::array<Real, NNODES> WEIGHTS{{1./4, 1./4, 1./4, 1./4}};
     //Point locations (in barycentric coordinates)
-    static constexpr std::array<Point<3>, NNODES> NODES {
+    inline static constexpr std::array<Point<3>, NNODES> NODES {
             Point<3>({0.585410196624969, 0.138196601125011, 0.138196601125011}),
             Point<3>({0.138196601125011, 0.138196601125011, 0.138196601125011}),
             Point<3>({0.138196601125011, 0.138196601125011, 0.585410196624969}),
@@ -103,8 +103,8 @@ struct IntegratorTetrahedronP2 {
 
 struct IntegratorTetrahedronP4 {
     //Number of nodes
-    static constexpr UInt NNODES = 14;
-    static constexpr std::array<Real, NNODES> WEIGHTS {
+    inline static constexpr UInt NNODES = 14;
+    inline static constexpr std::array<Real, NNODES> WEIGHTS {
             {0.008501593297035,
                     0.008501593297035,
                     0.008501593297035,
@@ -121,7 +121,7 @@ struct IntegratorTetrahedronP4 {
                     0.127255237550536}
     };
     //Point locations (in barycentric coordinates)
-    static constexpr std::array<Point<3>, NNODES> NODES {
+    inline static constexpr std::array<Point<3>, NNODES> NODES {
             Point<3>({1./3, 1./3, 1./3}),
             Point<3>({	 0, 1./3, 1./3}),
             Point<3>({1./3,	   0, 1./3}),
@@ -160,23 +160,23 @@ struct DensityIntegratorHelper {
 
 
 struct IntegratorGaussP3 {
-    static constexpr UInt ORDER = 1;
+    inline static constexpr UInt ORDER = 1;
     //Number of nodes
-    static constexpr UInt NNODES = 2;
+    inline static constexpr UInt NNODES = 2;
 
-    static constexpr std::array<Real, NNODES> WEIGHTS{{1., 1.}};
+    inline static constexpr std::array<Real, NNODES> WEIGHTS{{1., 1.}};
 
-    static constexpr std::array<Real, NNODES> NODES{{-0.577350269189626, 0.577350269189626}};
+    inline static constexpr std::array<Real, NNODES> NODES{{-0.577350269189626, 0.577350269189626}};
 };
 
 struct IntegratorGaussP5 {
-    static constexpr UInt ORDER = 1;
+    inline static constexpr UInt ORDER = 1;
     //Number of nodes
-    static constexpr UInt NNODES = 3;
+    inline static constexpr UInt NNODES = 3;
     //Point locations
-    static constexpr std::array<Real, NNODES> WEIGHTS{{5./9, 8./9, 5./9}};
+    inline static constexpr std::array<Real, NNODES> WEIGHTS{{5./9, 8./9, 5./9}};
 
-    static constexpr std::array<Real, NNODES> NODES{{-0.774596669241483, 0, 0.774596669241483}};
+    inline static constexpr std::array<Real, NNODES> NODES{{-0.774596669241483, 0, 0.774596669241483}};
 };
 
 #endif //DEV_FDAPDE_INTEGRATION_H

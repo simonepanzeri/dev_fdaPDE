@@ -5,6 +5,8 @@
 #ifndef DEV_FDAPDE_PDE_EXPRESSION_TEMPLATES_H
 #define DEV_FDAPDE_PDE_EXPRESSION_TEMPLATES_H
 
+#include "Finite_Element.h"
+
 //Forward declarations!
 template <UInt ORDER, UInt mydim, UInt ndim>
 class FiniteElement;

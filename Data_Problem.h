@@ -151,7 +151,7 @@ private:
 
 public:
     //! A constructor:
-    DataProblem_time(const std::vector<Point<ndim>>& data, std::vector<Real>& data_time,
+    DataProblem_time(const std::vector<Point<ndim>>& data, const std::vector<Real>& data_time,
                      const UInt& order, const VectorXr& fvec, Real heatStep, UInt heatIter,
                      const std::vector<Real>& lambda, const UInt& nfolds, const UInt& nsim,
                      const std::vector<Real>& stepProposals, Real tol1, Real tol2, bool print,
