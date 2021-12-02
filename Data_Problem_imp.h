@@ -134,8 +134,7 @@ DataProblem<ORDER, mydim, ndim>::computePsi(const std::vector<UInt>& indices) co
             for(UInt node = 0; node < EL_NNODES ; ++node)
             {
                 Real evaluator = tri_activated.evaluate_point(deData_.data(*it), Eigen::Matrix<Real,EL_NNODES,1>::Unit(node));
-                //std::cout << it-indices.cbegin() << " " << tri_activated[node].getId() << ": " << evaluator << std::endl;
-                triplets.emplace_back(it-indices.cbegin(), tri_activated[node].getId()-1, evaluator);
+                triplets.emplace_back(it-indices.cbegin(), tri_activated[node].getId(), evaluator);
             }
         }
     }
@@ -219,8 +218,26 @@ void DataProblem_time<ORDER, mydim, ndim>::fillTimeSecondDerivative(void)
 }
 
 template<UInt ORDER, UInt mydim, UInt ndim>
+MatrixXr DataProblem_time<ORDER, mydim, ndim>::fillPhiQuad(UInt time_node) const {
+    MatrixXr phi;
+    if(time_node<=SPLINE_DEGREE)
+        phi.resize(IntegratorP5::NNODES,time_node+1);
+    else
+        phi.resize(IntegratorP5::NNODES,SPLINE_DEGREE+1);
+    Real t_a = mesh_time_[time_node], t_b = mesh_time_[time_node+1];
+    std::array<Real,IntegratorP5::NNODES> ref_nodes;
+    for(UInt k = 0; k < IntegratorP5::NNODES; ++k)
+        ref_nodes[k]=((t_b-t_a)*IntegratorP5::NODES[k]+t_a+t_b)/2;
+    for(UInt j = 0; j < phi.cols(); j++){
+        for(UInt i = 0; i < phi.rows(); i++)
+            phi(i,j) = spline.BasisFunction(time_node+j, ref_nodes[i]);
+    }
+    return phi;
+}
+
+template<UInt ORDER, UInt mydim, UInt ndim>
 SpMat DataProblem_time<ORDER, mydim, ndim>::computeUpsilon(const SpMat& psi, const SpMat& phi,
-                                                      const std::map<UInt, std::set<UInt>>& data_noD) const{
+                                                      const std::map<UInt, std::set<UInt>>& data_noD) const {
     static constexpr Real eps = std::numeric_limits<Real>::epsilon(), tolerance = 100 * eps;
 
     const UInt psi_r = psi.rows();

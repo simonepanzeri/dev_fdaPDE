@@ -5,6 +5,8 @@
 #include "DE_Data.h"
 #include "Data_Problem.h"
 #include "Functional_Problem.h"
+//#include "FE_Density_Estimation.h"
+//#include "Optimization_Algorithm.h"
 
 std::vector<Real> createNodes();
 std::vector<UInt> createSides();
@@ -12,6 +14,11 @@ std::vector<UInt> createElements();
 std::vector<UInt> createNeighbors();
 
 int main() {
+
+    // #################################################################################################################
+    // ################################################ DATA GENERATION ################################################
+    // #################################################################################################################
+
     const UInt N = 2;
     const UInt Npoints = 10;
     std::vector<Point<N>> locations;
@@ -63,13 +70,43 @@ int main() {
     }
     RIntegerMatrix neighbors_m(neighbors_v.data(),36,3);
 
+    // DATA PROBLEM
     DataProblem<1, 2, 2> dataProb(locations, 2, fvec, 0.023, 100, lambda, 7, 1000, stepProposals,
     0.00001, 0.0001, false, 1, points_m, sides_m, elements_m, neighbors_m);
 
+    // DATA PROBLEM TIME
     DataProblem_time<1, 2, 2> dataProb_time(locations, data_time, 2, fvec, 0.023, 100, lambda, 7, 1000, stepProposals,
                                   0.00001, 0.0001, false, 1, points_m, sides_m, elements_m, neighbors_m, time_mesh);
 
+    std::cout << "###################################################" << std::endl;
+/*
+    // FUNCTIONAL PROBLEM
+    FunctionalProblem<1, 2, 2> funcProb(dataProb);
+    VectorXr g = VectorXr::Ones(dataProb.getNumNodes());
+    std::tuple<Real, VectorXr, Real, Real> result = funcProb.computeFunctional_g(g, 0.01, dataProb.getGlobalPsi());
+    std::cout << "Functional problem: " << std::endl;
+    std::cout << "Penalized log-likelihood: " << std::get<0>(result) << std::endl;
+    std::cout << "Log-likelihood: " << std::get<2>(result) << std::endl;
+    std::cout << "Spatial penalization: " << std::get<3>(result) << std::endl;
 
+    std::cout << "###################################################" << std::endl;
+*/
+    // FUNCTIONAL PROBLEM TIME
+    FunctionalProblem_time<1, 2, 2> funcProb_time(dataProb_time);
+    VectorXr g_t = VectorXr::Ones(dataProb_time.getNumNodes()*dataProb_time.getSplineNumber());
+    std::tuple<Real, VectorXr, Real, Real, Real> result_tg = funcProb_time.computeFunctional_g(g_t, 0.01, 0.01, dataProb_time.getUpsilon());
+    std::cout << "Functional problem time (g): " << std::endl;
+    std::cout << "Penalized log-likelihood: " << std::get<0>(result_tg) << std::endl;
+    std::cout << "Log-likelihood: " << std::get<2>(result_tg) << std::endl;
+    std::cout << "Spatial penalization: " << std::get<3>(result_tg) << std::endl;
+    std::cout << "Temporal penalization: " << std::get<4>(result_tg) << std::endl;
+
+    VectorXr f_t = VectorXr::Ones(dataProb_time.getNumNodes()*dataProb_time.getSplineNumber());
+    std::tuple<Real, Real, Real> result_tf = funcProb_time.computeLlikPen_f(f_t);
+    std::cout << "Functional problem time (f): " << std::endl;
+    std::cout << "Log-likelihood: " << std::get<0>(result_tf) << std::endl;
+    std::cout << "Spatial penalization: " << std::get<1>(result_tf) << std::endl;
+    std::cout << "Temporal penalization: " << std::get<2>(result_tf) << std::endl;
 
     return 0;
 }
