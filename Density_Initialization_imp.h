@@ -126,7 +126,8 @@ HeatProcess<ORDER, mydim, ndim>::chooseInitialization(Real lambda) const{
     UInt index_min;
     sum.minCoeff(&index_min);
 
-    Rprintf("The initialization selected for lambda %f is the number %d\n", lambda, index_min);
+    //Rprintf("The initialization selected for lambda %f is the number %d\n", lambda, index_min);
+    std::cout<<"The initialization selected for lambda %f is the number: "<<lambda<<std::endl; //!added for c++ purpose
 
     return &(init_proposals_[index_min]);
 }
@@ -185,7 +186,8 @@ Heat_CV<ORDER, mydim, ndim>::perform_init_cv(){
 
     init_best_ = std::distance(cv_errors_.cbegin(), std::min_element(cv_errors_.cbegin(), cv_errors_.cend()));
 
-    Rprintf("The initialization selected is the number %d\n", init_best_);
+    //Rprintf("The initialization selected is the number %d\n", init_best_);
+    std::cout<<"The initialization selected is the number "<< init_best_ <<std::endl; //! Added for c++ purpose
 
     // totale
     this->data_index_.resize(this->dataProblem_.dataSize());
@@ -203,5 +205,31 @@ Heat_CV<ORDER, mydim, ndim>::chooseInitialization(Real lambda) const{
     return &(this->init_proposals_[init_best_]);
 
 }
+
+//! ####################################################################################################################
+//! ######################################## SPACE-TIME PROBLEM ########################################################
+//! ####################################################################################################################
+
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+UserInitialization_time<ORDER, mydim, ndim>::UserInitialization_time(const DataProblem_time<ORDER, mydim, ndim>& dp):
+        DensityInitialization_time<ORDER, mydim, ndim>(dp){
+
+    initialization = dp.getFvec();
+    std::cout<<" Initialization dim: "<<initialization.size()<<std::endl;
+
+}
+
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+const VectorXr*
+UserInitialization_time<ORDER, mydim, ndim>::chooseInitialization(Real lambda) const{
+
+    return &(this->initialization);
+
+}
+
+
+
 
 #endif //DEV_FDAPDE_DENSITY_INITIALIZATION_IMP_H

@@ -14,9 +14,9 @@
 template<UInt ORDER, UInt mydim, UInt ndim>
 class Preprocess{
 protected:
-    // A member to access the data problem methods
+    // A member to acess the data problem methods
     const DataProblem<ORDER, mydim, ndim>& dataProblem_;
-    // A member to access the functional methods
+    // A member to acess the functional methods
     const FunctionalProblem<ORDER, mydim, ndim>& funcProblem_;
     // A member to do density initialization
     std::unique_ptr<DensityInitialization<ORDER, mydim, ndim>> densityInit_;
@@ -135,6 +135,65 @@ public:
                          const FunctionalProblem<ORDER, mydim, ndim>& fp,
                          std::shared_ptr<MinimizationAlgorithm<ORDER, mydim, ndim>> ma);
 
+};
+
+//! ####################################################################################################################
+//! ######################################## SPACE-TIME PROBLEM ########################################################
+//! ####################################################################################################################
+
+//! @brief An abtract base class to perform the preprocess phase.
+template<UInt ORDER, UInt mydim, UInt ndim>
+class Preprocess_time{
+protected:
+    // A member to acess the data problem methods
+    const DataProblem_time<ORDER, mydim, ndim>& dataProblem_;
+    // A member to acess the functional methods
+    const FunctionalProblem_time<ORDER, mydim, ndim>& funcProblem_;
+    // A member to do density initialization
+    std::unique_ptr<DensityInitialization_time<ORDER, mydim, ndim>> densityInit_;
+
+    // It saves the initial f-density for each lambda
+    std::vector<const VectorXr*> fInit_;
+    // It saves the g-density to start the final minimization descent
+    VectorXr gInit_;
+    // It saves the lambda selected
+    Real bestLambda_S;
+    Real bestLambda_T;
+
+    //! A method to fill fInit_.
+    void fillFInit();
+
+public:
+    //! A constructor.
+    Preprocess_time(const DataProblem_time<ORDER, mydim, ndim>& dp,
+               const FunctionalProblem_time<ORDER, mydim, ndim>& fp);
+    //! A destructor.
+    virtual ~Preprocess_time(){};
+    //! A pure virtual method to perform the preprocess task.
+    virtual void performPreprocessTask() = 0;
+
+    //! Getter
+    inline std::tuple<std::vector<const VectorXr*>, VectorXr, Real, Real> getPreprocessParameter() const
+    { return std::tuple<std::vector<const VectorXr*>, VectorXr, Real, Real> (fInit_, gInit_, bestLambda_S, bestLambda_T); }
+
+    virtual std::vector<Real> getCvError() const = 0;
+
+};
+
+
+//! @brief A class to handle the preprocess phase when there is only one smoothere parameter.
+template<UInt ORDER, UInt mydim, UInt ndim>
+class NoCrossValidation_time : public Preprocess_time<ORDER, mydim, ndim>{
+public:
+    //! A constructor
+    NoCrossValidation_time(const DataProblem_time<ORDER, mydim, ndim>& dp,
+                      const FunctionalProblem_time<ORDER, mydim, ndim>& fp):
+            Preprocess_time<ORDER, mydim, ndim>(dp, fp){};
+
+    //! Overridden method to perform the preprocess phase.
+    void performPreprocessTask() override;
+
+    std::vector<Real> getCvError() const override {return std::vector<Real>{};}
 };
 
 #include "Preprocess_Phase_imp.h"

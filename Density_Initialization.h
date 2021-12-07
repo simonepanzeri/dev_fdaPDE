@@ -105,6 +105,44 @@ public:
     const VectorXr* chooseInitialization(Real lambda) const override;
 };
 
+//! ####################################################################################################################
+//! ######################################## SPACE-TIME PROBLEM ########################################################
+//! ####################################################################################################################
+
+/*!  @brief An abstract base class dealing with the density initialization feature.
+*/
+template<UInt ORDER, UInt mydim, UInt ndim>
+class DensityInitialization_time{
+protected:
+    static constexpr UInt EL_NNODES = how_many_nodes(ORDER,mydim);
+    // A member to access data problem methods
+    const DataProblem_time<ORDER, mydim, ndim>& dataProblem_;
+
+public:
+    //! A constructor.
+    DensityInitialization_time(const DataProblem_time<ORDER, mydim, ndim>& dp): dataProblem_(dp){};
+    //! A destructor.
+    virtual ~DensityInitialization_time(){};
+    //! A pure virtual method to compute density initialization.
+    virtual const VectorXr* chooseInitialization(Real lambda) const = 0;
+};
+
+/*!  @brief A class dealing with the user's density initialization.
+*/
+template<UInt ORDER, UInt mydim, UInt ndim>
+class UserInitialization_time : public DensityInitialization_time<ORDER, mydim, ndim>{
+private:
+    static constexpr UInt EL_NNODES = DensityInitialization_time<ORDER, mydim, ndim>::EL_NNODES;
+    // A VectorXr which contains the user initialization
+    VectorXr initialization;
+
+public:
+    //! Delegating constructor
+    UserInitialization_time(const DataProblem_time<ORDER, mydim, ndim>& dp);
+    //! An overridden method to compute density initialization when the user gives it.
+    const VectorXr* chooseInitialization(Real lambda) const override;
+};
+
 #include "Density_Initialization_imp.h"
 
 #endif //DEV_FDAPDE_DENSITY_INITIALIZATION_H

@@ -58,7 +58,7 @@ FixedStep<ORDER,mydim,ndim>::apply_core(const SpMat& Psi, Real lambda, const Vec
         norm_grad = std::sqrt(grad.dot(grad));
 
         if(this->dataProblem_.Print()){
-            Rprintf("loss %f, llik %f, pen %f, norm_Lp %f\n", loss, llik, pen, norm_grad);
+           // Rprintf("loss %f, llik %f, pen %f, norm_Lp %f\n", loss, llik, pen, norm_grad);
         }
 
         for(i = 0; i < this->dataProblem_.getNsimulations() && (dloss > toll1 || dllik > toll1 || dpen > toll1) && norm_grad > toll2; i++){
@@ -84,13 +84,13 @@ FixedStep<ORDER,mydim,ndim>::apply_core(const SpMat& Psi, Real lambda, const Vec
             // Check if the step is ok
             if((loss_old - loss) < 0){
                 if(this->dataProblem_.Print()){
-                    Rprintf("The loss function increases: not good. Try decreasing the optimization parameter.\n", norm_grad);
+                   // Rprintf("The loss function increases: not good. Try decreasing the optimization parameter.\n", norm_grad);
                 }
                 break;
             }
 
             if(this->dataProblem_.Print()){
-                Rprintf("Iter %d, loss %f, llik %f, pen %f, norm_Lp %f\n", i+1, loss, llik, pen, norm_grad);
+                //Rprintf("Iter %d, loss %f, llik %f, pen %f, norm_Lp %f\n", i+1, loss, llik, pen, norm_grad);
             }
         }
 
@@ -99,26 +99,26 @@ FixedStep<ORDER,mydim,ndim>::apply_core(const SpMat& Psi, Real lambda, const Vec
         if ((loss_old - loss) < 0){}
         else if(dloss <= toll1 && dllik <= toll1 && dpen <= toll1){
             if(this->dataProblem_.Print()){
-                Rprintf("The algorithm reaches the tollerance in terms of the functional. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+               // Rprintf("The algorithm reaches the tollerance in terms of the functional. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
             }
             return g_curr;
         }
         else if(norm_grad <= toll2){
             if(this->dataProblem_.Print()){
-                Rprintf("The algorithm reaches the tollerance in terms of the slope. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+               // Rprintf("The algorithm reaches the tollerance in terms of the slope. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
             }
             return g_curr;
         }
         else if(i == this->dataProblem_.getNsimulations()){
             if(this->dataProblem_.Print()){
-                Rprintf("The algorithm reaches the maximum number of iterations. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+                //Rprintf("The algorithm reaches the maximum number of iterations. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
             }
             return g_curr;
         }
     }
 
     // If you arrive here you don't have a good gradient parameter
-    Rprintf("ERROR: The loss function increases: not good. Try decreasing the optimization parameter");
+    // Rprintf("ERROR: The loss function increases: not good. Try decreasing the optimization parameter");
     //std::abort();
     return VectorXr::Constant(g.size(),0);
 
@@ -145,7 +145,7 @@ AdaptiveStep<ORDER,mydim,ndim>::apply_core(const SpMat& Psi, Real lambda, const 
     norm_grad = std::sqrt(grad.dot(grad));
 
     if(this->dataProblem_.Print()){
-        Rprintf("loss %f, llik %f, pen %f, norm_Lp %f\n", loss, llik, pen, norm_grad);
+       // Rprintf("loss %f, llik %f, pen %f, norm_Lp %f\n", loss, llik, pen, norm_grad);
     }
 
     for(i = 0; i < this->dataProblem_.getNsimulations() && (dloss > toll1 || dllik > toll1 || dpen > toll1) && norm_grad > toll2; i++){
@@ -172,7 +172,7 @@ AdaptiveStep<ORDER,mydim,ndim>::apply_core(const SpMat& Psi, Real lambda, const 
         norm_grad = std::sqrt(grad.dot(grad));
 
         if(this->dataProblem_.Print()){
-            Rprintf("Iter %d, loss %f, llik %f, pen %f, norm_Lp %f\n", i+1, loss, llik, pen, norm_grad);
+           // Rprintf("Iter %d, loss %f, llik %f, pen %f, norm_Lp %f\n", i+1, loss, llik, pen, norm_grad);
         }
 
     }
@@ -181,19 +181,19 @@ AdaptiveStep<ORDER,mydim,ndim>::apply_core(const SpMat& Psi, Real lambda, const 
 
     if(dloss <= toll1 && dllik <= toll1 && dpen <= toll1){
         if(this->dataProblem_.Print()){
-            Rprintf("The algorithm reaches the tollerance in terms of the functional. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+          //  Rprintf("The algorithm reaches the tollerance in terms of the functional. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
         }
         return g_curr;
     }
     else if(norm_grad <= toll2){
         if(this->dataProblem_.Print()){
-            Rprintf("The algorithm reaches the tollerance in terms of the slope. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+          //  Rprintf("The algorithm reaches the tollerance in terms of the slope. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
         }
         return g_curr;
     }
     else{
         if(this->dataProblem_.Print()){
-            Rprintf("The algorithm reaches the maximum number of iterations. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+         //   Rprintf("The algorithm reaches the maximum number of iterations. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
         }
         return g_curr;
     }
@@ -300,6 +300,144 @@ WolfeMethod<ORDER, mydim, ndim>::clone() const {
     return make_unique<WolfeMethod<ORDER, mydim, ndim>>(*this);
 
 }
+
+//! ####################################################################################################################
+//! ######################################## SPACE-TIME PROBLEM ########################################################
+//! ####################################################################################################################
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+MinimizationAlgorithm_time<ORDER, mydim, ndim>::
+MinimizationAlgorithm_time(const DataProblem_time<ORDER, mydim, ndim>& dp,
+                      const FunctionalProblem_time<ORDER, mydim, ndim>& fp, const std::string& d):
+        dataProblem_(dp), funcProblem_(fp){
+
+    direction_ = DescentDirection_factory_time<ORDER,  mydim,  ndim>::createDirectionSolver(dp, fp, d);
+
+};
+
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+MinimizationAlgorithm_time<ORDER, mydim, ndim>::
+MinimizationAlgorithm_time(const MinimizationAlgorithm_time<ORDER, mydim, ndim>& rhs):
+        dataProblem_(rhs.dataProblem_), funcProblem_(rhs.funcProblem_){
+
+    direction_ = rhs.direction_->clone();
+};
+
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+std::unique_ptr<MinimizationAlgorithm_time<ORDER, mydim, ndim>>
+FixedStep_time<ORDER, mydim, ndim>::clone() const {
+
+    return make_unique<FixedStep_time<ORDER, mydim, ndim>>(*this);
+
+}
+
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+VectorXr
+FixedStep_time<ORDER,mydim,ndim>::apply_core(const SpMat& Upsilon, Real lambda_S, Real lambda_T,const VectorXr& g) const{
+
+    std::cout<<"==== INTO MINIMIZATION APPLY CORE ===="<<std::endl;
+    // termination criteria variables
+    const Real toll1 = this->dataProblem_.getTol1(), toll2 = this->dataProblem_.getTol2();
+    Real norm_grad, dloss = toll1 +1, dllik = toll1 +1, dpen_S = toll1 +1, dpen_T = toll1+1;
+
+    // to save the current point
+    VectorXr g_curr;
+
+    // variables
+    VectorXr grad, d;
+    Real loss, loss_old, llik, llik_old, pen_S, pen_T, pen_old_S, pen_old_T;
+    UInt i;
+
+    for(UInt e = 0; e < this->dataProblem_.getNstepProposals(); e++){
+        std::cout<<"==== INTO THE FIRST FOR LOOP AT ITERATION ==== ---->>"<< e <<std::endl;
+        // start always with the initial point
+        g_curr = g;
+        std::cout<<"g_curr dim: "<<g_curr.size()<<" value: "<<g_curr[0]<<std::endl;
+
+        std::cout<<"==== COMPUTATION OF FUNCTIONAL ===="<<std::endl;
+        std::tie(loss, grad, llik, pen_S, pen_T) = this->funcProblem_.computeFunctional_g(g_curr, lambda_S, lambda_T, Upsilon);
+        std::cout<<"==== END COMPUTATION OF FUNCTIONAL ===="<<std::endl;
+        norm_grad = std::sqrt(grad.dot(grad));
+        std::cout<<"norm_grad: "<<norm_grad<<std::endl;
+        std::cout<<"==== END NORM GRAD ===="<<std::endl;
+        if(this->dataProblem_.Print()){
+            // Rprintf("loss %f, llik %f, pen %f, norm_Lp %f\n", loss, llik, pen, norm_grad);
+        }
+
+        for(i = 0; i < this->dataProblem_.getNsimulations() && (dloss > toll1 || dllik > toll1 || dpen_S > toll1 || dpen_T > toll1) && norm_grad > toll2; i++){
+            std::cout<<"==== INTO THE SECOND LOOP ===="<<std::endl;
+            // Termination criteria variables
+            loss_old = loss;
+            llik_old = llik;
+            pen_old_S = pen_S;
+            pen_old_T = pen_T;
+
+            // Compute a descent direction
+            std::cout<<"==== COMPUTATION OF THE DIRECTION ===="<<std::endl;
+            d = this->direction_->computeDirection(g_curr, grad);
+
+            // Update the point
+            std::cout<<"==== UPDATE DEL PUNTO ===="<<std::endl;
+            g_curr = g_curr + this->dataProblem_.getStepProposals(e)*d;
+
+            // Update termination criteria variables
+            std::cout<<"==== UPDATE TERMINATION CRITERIA ===="<<std::endl;
+            std::tie(loss, grad, llik, pen_S, pen_T) = this->funcProblem_.computeFunctional_g(g_curr, lambda_S, lambda_T, Upsilon);
+            dloss = std::abs((loss - loss_old)/loss_old);
+            dllik = std::abs((llik - llik_old)/llik_old);
+            dpen_S = std::abs((pen_S - pen_old_S)/pen_old_S);
+            dpen_T = std::abs((pen_T - pen_old_T)/pen_old_T);
+            norm_grad = std::sqrt(grad.dot(grad));
+
+            // Check if the step is ok
+            if((loss_old - loss) < 0){
+                std::cout<<"The loss function increases: not good. Try decreasing the optimization parameter "<<std::endl;
+                if(this->dataProblem_.Print()){
+                    // Rprintf("The loss function increases: not good. Try decreasing the optimization parameter.\n", norm_grad);
+                }
+                break;
+            }
+
+            if(this->dataProblem_.Print()){
+                //Rprintf("Iter %d, loss %f, llik %f, pen %f, norm_Lp %f\n", i+1, loss, llik, pen, norm_grad);
+            }
+        }
+        std::cout<<"==== END SECOND LOOP ===="<<std::endl;
+
+        this->direction_->resetParameters();
+
+        if ((loss_old - loss) < 0){}
+        else if(dloss <= toll1 && dllik <= toll1 && dpen_S <= toll1 && dpen_T <= toll1){
+            if(this->dataProblem_.Print()){
+                // Rprintf("The algorithm reaches the tollerance in terms of the functional. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+            }
+            return g_curr;
+        }
+        else if(norm_grad <= toll2){
+            if(this->dataProblem_.Print()){
+                // Rprintf("The algorithm reaches the tollerance in terms of the slope. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+            }
+            return g_curr;
+        }
+        else if(i == this->dataProblem_.getNsimulations()){
+            if(this->dataProblem_.Print()){
+                //Rprintf("The algorithm reaches the maximum number of iterations. Norm of Lp: %f, dloss: %f, dllik: %f, dpen: %f\n", norm_grad, dloss, dllik, dpen);
+            }
+            return g_curr;
+        }
+    }
+    std::cout<<"==== END FIRST LOOP ===="<<std::endl;
+    // If you arrive here you don't have a good gradient parameter
+    std::cout<<"ERROR: The loss function increases: not good. Try decreasing the optimization parameter"<<std::endl;
+    // Rprintf("ERROR: The loss function increases: not good. Try decreasing the optimization parameter");
+    //std::abort();
+    return VectorXr::Constant(g.size(),0);
+
+}
+
 
 
 #endif //DEV_FDAPDE_OPTIMIZATION_ALGORITHM_IMP_H

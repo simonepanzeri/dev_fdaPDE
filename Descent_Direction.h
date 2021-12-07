@@ -7,11 +7,11 @@
 
 #include "FdaPDE.h"
 
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+//template<typename T, typename... Args>
+//std::unique_ptr<T> make_unique(Args&&... args)
+//{
+//    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+//}
 
 // This file contains the direction search technique useful for the optimization algorithm of the Density Estimation problem
 
@@ -77,6 +77,47 @@ public:
     void resetParameters() override;
 
 };
+
+//! ####################################################################################################################
+//! ######################################## SPACE-TIME PROBLEM ########################################################
+//! ####################################################################################################################
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+class DirectionBase_time{
+protected:
+    // to give generality if you want to add other children
+    const FunctionalProblem_time<ORDER, mydim, ndim>& funcProblem_;
+
+public:
+    //! A constructor
+    DirectionBase_time(const FunctionalProblem_time<ORDER, mydim, ndim>& fp): funcProblem_(fp){};
+    //! A destructor.
+    virtual ~DirectionBase_time(){};
+    //! A pure virtual clone method.
+    virtual std::unique_ptr<DirectionBase_time<ORDER, mydim, ndim>> clone() const = 0;
+    //! A pure virtual method to compute the descent direction.
+    virtual VectorXr computeDirection(const VectorXr& g, const VectorXr& grad) = 0;
+    //! A pure virtual method to reset all the old parameters.
+    virtual void resetParameters() = 0;
+};
+
+
+//! @brief A class for computing the gradient descent direction.
+template<UInt ORDER, UInt mydim, UInt ndim>
+class DirectionGradient_time : public DirectionBase_time<ORDER, mydim, ndim>{
+public:
+    //! A delegating constructor.
+    DirectionGradient_time(const FunctionalProblem_time<ORDER, mydim, ndim>& fp):
+            DirectionBase_time<ORDER, mydim, ndim>(fp){};
+    //! Clone method overridden.
+    std::unique_ptr<DirectionBase_time<ORDER, mydim, ndim>> clone() const override;
+    //! A method to compute the gradient descent direction.
+    VectorXr computeDirection(const VectorXr& g, const VectorXr& grad) override;
+    //! A method to reset all the old parameters. In the gradient method they aren't.
+    void resetParameters() override {};
+
+};
+
 
 #include "Descent_Direction_imp.h"
 

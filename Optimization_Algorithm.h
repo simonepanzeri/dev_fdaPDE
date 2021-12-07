@@ -9,11 +9,11 @@
 #include "Descent_Direction.h"
 #include "Descent_Direction_Factory.h"
 
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
+//template<typename T, typename... Args>
+//std::unique_ptr<T> make_unique(Args&&... args)
+//{
+//    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+//}
 
 //! @brief An abtract base class to perform the minimization algorithm.
 template<UInt ORDER, UInt mydim, UInt ndim>
@@ -129,6 +129,59 @@ public:
     std::unique_ptr<MinimizationAlgorithm<ORDER, mydim, ndim>> clone() const override;
 
 };
+
+//! ####################################################################################################################
+//! ######################################## SPACE-TIME PROBLEM ########################################################
+//! ####################################################################################################################
+
+//! @brief An abtract base class to perform the minimization algorithm.
+template<UInt ORDER, UInt mydim, UInt ndim>
+class MinimizationAlgorithm_time{
+protected:
+    // A member to access data problem methods
+    const DataProblem_time<ORDER, mydim, ndim>& dataProblem_;
+    // A member to access functional  methods
+    const FunctionalProblem_time<ORDER, mydim, ndim>& funcProblem_;
+    // A pointer to the object which computes the descent direction
+    std::unique_ptr<DirectionBase_time<ORDER, mydim, ndim>> direction_;
+
+public:
+    //! A constructor.
+    MinimizationAlgorithm_time(const DataProblem_time<ORDER, mydim, ndim>& dp,
+                          const FunctionalProblem_time<ORDER, mydim, ndim>& fp, const std::string& d);
+    //! A destructor.
+    virtual ~MinimizationAlgorithm_time(){};
+    //! A copy constructor.
+    MinimizationAlgorithm_time(const MinimizationAlgorithm_time<ORDER, mydim, ndim>& rhs);
+    //! A pure virtual clone method.
+    virtual std::unique_ptr<MinimizationAlgorithm_time<ORDER, mydim, ndim>> clone() const = 0;
+    //! A pure virtual method to perform the minimization task.
+    virtual VectorXr apply_core(const SpMat& Upsilon, Real lambda_S, Real lambda_T, const VectorXr& g) const = 0;
+
+};
+
+
+//! @brief A class to perform the minimization algorithm when the step parameter is fixed among all the iterations.
+template<UInt ORDER, UInt mydim, UInt ndim>
+class FixedStep_time : public MinimizationAlgorithm_time<ORDER, mydim, ndim>{
+public:
+    //! A delegating constructor.
+    FixedStep_time(const DataProblem_time<ORDER, mydim, ndim>& dp,
+              const FunctionalProblem_time<ORDER, mydim, ndim>& fp,
+              const std::string& d):
+            MinimizationAlgorithm_time<ORDER, mydim, ndim>(dp, fp, d){};
+
+    //! A copy constructor.
+    FixedStep_time(const FixedStep_time<ORDER, mydim, ndim>& rhs):
+            MinimizationAlgorithm_time<ORDER, mydim, ndim>(rhs){};
+    //! Clone method overridden.
+    std::unique_ptr<MinimizationAlgorithm_time<ORDER, mydim, ndim>> clone() const override;
+    //! A method to perform the minimization algorithm when the step parameter is fixed among all the iterations.
+    VectorXr apply_core(const SpMat& Upsilon, Real lambda_S, Real lambda_T, const VectorXr& g) const override;
+
+};
+
+
 
 #include "Optimization_Algorithm_imp.h"
 

@@ -189,10 +189,11 @@ public:
     UInt getSplineDegree(void) const {return SPLINE_DEGREE; }
     //! A emthod returning the total number of B-splines basis functions.
     UInt getSplineNumber (void) const {return spline.num_knots()-SPLINE_DEGREE-1;}
-    //! A method returning the matrix needed for the penalizing term in space.
-    const SpMat getPen_s(void) const {return kroneckerProduct(this->getP().sparseView(), getTimeMass());}
-    //! A method returning the matrix needed for the penalizing term in time.
-    const SpMat getPen_t(void) const {return kroneckerProduct(this->getMass(), getPt());}
+
+    //! A method computing the matrix needed for the penalizing term in space.
+    const SpMat computePen_s(void) const {return kroneckerProduct(this->getP().sparseView(), getTimeMass());}
+    //! A method computing the matrix needed for the penalizing term in time.
+    const SpMat computePen_t(void) const {return kroneckerProduct(this->getMass(), getPt());}
 
     //getter for time mesh
     //! A method returning the time mesh.

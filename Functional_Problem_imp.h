@@ -140,10 +140,8 @@ FunctionalProblem_time<ORDER, mydim, ndim>::computeFunctional_g(const VectorXr& 
     const UInt n = Upsilon.rows(); // dataProblem_time_.dataSize()
     const Real llik = -(Upsilon*g).sum() + n * int1;
 
-    const SpMat K1 = dataProblem_time_.getPen_s();
-    //const SpMat K1 = kroneckerProduct(dataProblem_time_.getP().sparseView(), dataProblem_time_.getTimeMass());
-    const SpMat K2 = dataProblem_time_.getPen_t();
-    //const SpMat K2 = kroneckerProduct(dataProblem_time_.getMass(), dataProblem_time_.getPt());
+    const SpMat K1 = dataProblem_time_.computePen_s();
+    const SpMat K2 = dataProblem_time_.computePen_t();
 
     const Real pen_S = g.dot(K1 * g);
     const Real pen_T = g.dot(K2 * g);
@@ -163,10 +161,8 @@ std::tuple<Real, Real, Real>
 FunctionalProblem_time<ORDER, mydim, ndim>::computeLlikPen_f(const VectorXr& f) const {
     Real llik = (dataProblem_time_.getUpsilon()*f).array().log().sum() + dataProblem_time_.dataSize() * dataProblem_time_.FEintegrate(f);
     VectorXr tmp = f.array().log();
-    const SpMat K1 = dataProblem_time_.getPen_s();
-    //const SpMat K1 = kroneckerProduct(dataProblem_time_.getP().sparseView(), dataProblem_time_.getTimeMass());
-    const SpMat K2 = dataProblem_time_.getPen_t();
-    //const SpMat K2 = kroneckerProduct(dataProblem_time_.getMass(), dataProblem_time_.getPt());
+    const SpMat K1 = dataProblem_time_.computePen_s();
+    const SpMat K2 = dataProblem_time_.computePen_t();
     Real pen_S = tmp.dot(K1 * tmp);
     Real pen_T = tmp.dot(K2 * tmp);
 

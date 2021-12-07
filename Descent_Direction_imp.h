@@ -73,5 +73,25 @@ DirectionBFGS<ORDER, mydim, ndim>::resetParameters(){
     HOld_ = HInit_;
 }
 
+//! ####################################################################################################################
+//! ######################################## SPACE-TIME PROBLEM ########################################################
+//! ####################################################################################################################
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+std::unique_ptr<DirectionBase_time<ORDER, mydim, ndim>>
+DirectionGradient_time<ORDER, mydim, ndim>::clone() const {
+
+    return make_unique<DirectionGradient_time<ORDER, mydim, ndim>>(*this);
+
+}
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+VectorXr
+DirectionGradient_time<ORDER, mydim, ndim>::computeDirection(const VectorXr& g, const VectorXr& grad){
+
+    return (- grad);
+}
+
+
 
 #endif //DEV_FDAPDE_DESCENT_DIRECTION_IMP_H

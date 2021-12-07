@@ -67,9 +67,9 @@ CrossValidation<ORDER, mydim, ndim>::performCV(){
     // cycle on the folds
     for (UInt i = 0; i < K; i++){
 
-        if(this->dataProblem_.Print()){
-            Rprintf("X_valid is the fold number %d\n", i);
-        }
+//        if(this->dataProblem_.Print()){
+//            Rprintf("X_valid is the fold number %d\n", i);
+//        }
 
         std::vector<UInt> x_valid, x_train;
 
@@ -159,6 +159,45 @@ RightCrossValidation<ORDER, mydim, ndim>::performCV_core(UInt fold, const SpMat&
         }
     }
 
+}
+
+//! ####################################################################################################################
+//! ######################################## SPACE-TIME PROBLEM ########################################################
+//! ####################################################################################################################
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+Preprocess_time<ORDER, mydim, ndim>::Preprocess_time(const DataProblem_time<ORDER, mydim, ndim>& dp,
+                                           const FunctionalProblem_time<ORDER, mydim, ndim>& fp):
+        dataProblem_(dp), funcProblem_(fp){
+
+    densityInit_ = DensityInitialization_factory_time<ORDER, mydim, ndim>::createInitializationSolver(dp, fp);
+
+    fInit_.resize(dp.getNlambda());
+    fillFInit();
+
+};
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+void
+Preprocess_time<ORDER, mydim, ndim>::fillFInit(){
+
+    for(UInt l = 0; l < dataProblem_.getNlambda(); l++){
+        fInit_[l] = densityInit_-> chooseInitialization(dataProblem_.getLambda(l));
+        std::cout<<"fInit_[l] dim: "<<fInit_[l]->size()<<std::endl;
+    }
+}
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+void
+NoCrossValidation_time<ORDER, mydim, ndim>::performPreprocessTask(){
+
+    this->bestLambda_S = this->dataProblem_.getLambda(0);
+    std::cout<<" bestLambda_S: "<<this->bestLambda_S<<std::endl;
+    this->bestLambda_T = this->dataProblem_.getLambda(0);
+    std::cout<<" bestLambda_T: "<<this->bestLambda_T<<std::endl;
+    this->gInit_ = (*(this->fInit_[0])).array().log();
+    std::cout<<"gInit_ dim: "<<this->gInit_.size()<<std::endl;
+    std::cout<<"gInit_ values: "<<this->gInit_[0]<<std::endl;
 }
 
 #endif //DEV_FDAPDE_PREPROCESS_PHASE_IMP_H
