@@ -45,10 +45,10 @@ public:
     createInitializationSolver(const DataProblem_time<ORDER, mydim, ndim>& dp,
                                const FunctionalProblem_time<ORDER, mydim, ndim>& fp){
 
-        //if(!dp.isFvecEmpty())
+        if(!dp.isFvecEmpty())
             return make_unique<UserInitialization_time<ORDER, mydim, ndim>>(dp);
-        //else
-        //    return make_unique<HeatProcess<ORDER, mydim, ndim>>(dp, fp);
+        else
+            return make_unique<HeatProcess_time<ORDER, mydim, ndim>>(dp, fp);
 
     }
 

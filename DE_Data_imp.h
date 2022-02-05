@@ -24,9 +24,15 @@ void DEData<ndim>::printData(std::ostream & out) const
 }
 
 template <UInt ndim>
-DEData_time<ndim>::DEData_time(const std::vector<Point<ndim>>& data, const std::vector<Real>& data_time) :
-    data_time_(data_time) {
+DEData_time<ndim>::DEData_time(const std::vector<Real>& data_time, const std::vector<Real>& lambda_time) :
+    data_time_(data_time), lambda_time_(lambda_time) {}
+
+template<UInt ndim>
+void DEData_time<ndim>::createMap(const std::vector<Point<ndim>>& data) {
     static constexpr Real eps = std::numeric_limits<Real>::epsilon(), tolerance = 100 * eps;
+
+    data_time_noD_.clear();
+    data_noD_.clear();
 
     //extraction of non duplicated times
     std::set<Real> set_time_noD(data_time_.cbegin(),data_time_.cend());
@@ -39,18 +45,21 @@ DEData_time<ndim>::DEData_time(const std::vector<Point<ndim>>& data, const std::
     //creation of the map which contains as keys the IDs of different spatial points and as values the indices of
     //the time instants point in data_time_noD_ (this structure is needed to build one of the FEmatrices)
     std::set<UInt> set_helper;
-    for(size_t i = data.front().id(); i <= data.back().id(); ++i) {
-        if(!isAlready(i, set_helper)) {insert(i); set_helper.insert(i);}
-        for(size_t j = i + 1; j <= data.back().id(); ++j){
-            if (data[i].dist(data[j]) < tolerance and !isAlready(j, set_helper))
-                {insert(i,j); set_helper.insert(j);}
+    //for(size_t i = data.front().id(); i <= data.back().id(); ++i) { // progressive ids (not considering out-of-range ids)
+    UInt i;
+    for(size_t n = 0; n < data.size(); ++n) {
+        i = data[n].id();
+        if(!isAlready(i, set_helper)) {insert(i, data_time_[n]); set_helper.insert(i);}
+        for(size_t j = n + 1; j < data.size(); ++j){
+            if (data[n].dist(data[j]) < tolerance and !isAlready(data[j].id(), set_helper))
+            {insert(i, data_time_[j]); set_helper.insert(data[j].id());}
         }
     }
     set_helper.clear();
 }
 
 template <UInt ndim>
-const std::vector<UInt> DEData_time<ndim>::getID_noD() const {
+std::vector<UInt> DEData_time<ndim>::getID_noD() const {
     std::vector<UInt> noDup;
     noDup.reserve(data_noD_.size());
     for(const auto &s : data_noD_)

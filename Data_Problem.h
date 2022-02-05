@@ -50,11 +50,11 @@ public:
                 const RIntegerMatrix& elements, const RIntegerMatrix& neighbors, bool isTime = 0);
 
     //! A method to compute the integral of a function.
-    virtual Real FEintegrate(const VectorXr& f) const {return (R0_*f).sum();}
+    Real FEintegrate(const VectorXr& f) const {return (R0_*f).sum();}
     //! A method to compute the integral of the square of a function.
     Real FEintegrate_square(const VectorXr& f) const {return f.dot(R0_*f);}
     //! A method to compute the integral of the exponential of a function.
-    Real FEintegrate_exponential(const VectorXr& g) const;
+    virtual Real FEintegrate_exponential(const VectorXr& g) const;
     //! A method to compute the matrix which evaluates the basis function at the data points.
     SpMat computePsi(const std::vector<UInt>& indices) const;
 
@@ -76,9 +76,9 @@ public:
     Real getHeatStep() const {return deData_.getHeatStep();}
     //! A method returning the number of iterations for the heat diffusion process. It calls the same method of DEData class.
     UInt getHeatIter() const {return deData_.getHeatIter();}
-    //! A method returning the penalization parameters. It calls the same method of DEData class.
+    //! A method returning the penalization parameters (in space). It calls the same method of DEData class.
     Real getLambda(UInt i) const {return deData_.getLambda(i);}
-    //! A method returning the number of lambdas. It calls the same method of DEData class.
+    //! A method returning the number of lambdas (in space). It calls the same method of DEData class.
     UInt getNlambda()  const {return deData_.getNlambda();}
     //! A method returning the number of folds for CV. It calls the same method of DEData class.
     UInt getNfolds()  const {return deData_.getNfolds();}
@@ -117,6 +117,8 @@ public:
     MatrixXr getP() const {return P_;}
     //! A method returning the mass matrix.
     SpMat getMass() const {return R0_;}
+    //! A method returning the stiffness matrix.
+    SpMat getStiffness() const {return R1_;}
     //! A method returning the PsiQuad_ matrix.
     const Eigen::Matrix<Real, Integrator::NNODES, EL_NNODES>& getPsiQuad() const {return PsiQuad_;}
     //! A method returning the GlobalPsi_ matrix.
@@ -133,36 +135,46 @@ class DataProblem_time : public DataProblem<ORDER,mydim,ndim>{
 private:
     static const UInt SPLINE_DEGREE = 3;
     static const UInt ORDER_DERIVATIVE = 2;
-    using IntegratorP5 = IntegratorGaussP5;
+    using Integrator = typename DensityIntegratorHelper::Integrator<mydim>;
+    //using Integrator_t = IntegratorGaussP5;
+    using Integrator_t = IntegratorGaussP9;
     Spline<SPLINE_DEGREE, ORDER_DERIVATIVE> spline;
     //! A DEData_time object to store time data.
     DEData_time<ndim> deData_time_;
     //! A vector containing the time mesh.
     std::vector<Real> mesh_time_;
     //! Matrix of the evaluations of the spline basis functions in the time locations and mass matrix.
-    SpMat GlobalPhi_, K0_;
-    //! Time penalty matrix.
-    SpMat Pt_;
+    SpMat GlobalPhi_, K0_, R0_Lumped;
+    //! Time and space penalty matrix.
+    SpMat Pt_, Ps_;
     //! Kronecker product between GlobalPsi_ and GlobalPhi_.
     SpMat Upsilon_;
+    //! A map used for the Heat initialization
+    std::map<UInt,std::vector<UInt>> data_Heat_;
 
     void fillGlobalPsi(void) override;
     void fillGlobalPhi(void);
     void fillTimeMass(void);
     void fillTimeSecondDerivative(void);
+    void fillPenaltySpace(void);
+    void makeLumped(void);
+
+    void createMap_Heat(const std::vector<Real>& data_time);
 
 public:
     //! A constructor:
     DataProblem_time(const std::vector<Point<ndim>>& data, const std::vector<Real>& data_time,
                      const UInt& order, const VectorXr& fvec, Real heatStep, UInt heatIter,
-                     const std::vector<Real>& lambda, const UInt& nfolds, const UInt& nsim,
-                     const std::vector<Real>& stepProposals, Real tol1, Real tol2, bool print,
+                     const std::vector<Real>& lambda, const std::vector<Real>& lambda_time, const UInt& nfolds,
+                     const UInt& nsim, const std::vector<Real>& stepProposals, Real tol1, Real tol2, bool print,
                      UInt search, const RNumericMatrix& points, const RIntegerMatrix& sides,
                      const RIntegerMatrix& elements, const RIntegerMatrix& neighbors,
                      const std::vector<Real>& mesh_time, bool isTime = 1);
 
     //! A method to compute the integral of a function.
-    Real FEintegrate(const VectorXr& f) const override {return (kroneckerProduct(this->getMass(), getTimeMass())*f).sum();}
+    Real FEintegrate_time(const VectorXr& f) const {return (kroneckerProduct(getTimeMass(),this->getMass())*f).sum();}
+    //! A method to compute the integral of the exponential of a function.
+    Real FEintegrate_exponential(const VectorXr& g) const override;
 
     //! A method filling the current PhiQuad matrix needed for the discretization of the exponential integral.
     MatrixXr fillPhiQuad(UInt time_node) const;
@@ -170,7 +182,9 @@ public:
     //! A method computing the Upsilon matrix (kronecker product between GlobalPsi_ and GlobalPhi_, calculated
     //! considering for each spatial location only the proper rows of GlobalPhi_ corresponding to the time instants
     //! when that location is observed).
+    SpMat computeUpsilon(const SpMat& psi, const SpMat& phi) const;
     SpMat computeUpsilon(const SpMat& psi, const SpMat& phi, const std::map<UInt, std::set<UInt>>& data_noD) const;
+    SpMat computeUpsilon(const std::vector<UInt>& indices) const;
 
     // Getters
     //! A method to access the data. It calls the same method of DEData class.
@@ -185,15 +199,31 @@ public:
     const SpMat& getUpsilon() const {return Upsilon_;}
     //! A method returning the time mass matrix.
     SpMat getTimeMass(void) const {return K0_;}
+    //! A method returning the lumped space mass matrix.
+    SpMat getLumped(void) const {return R0_Lumped;}
     //! A method returning the spline degree.
     UInt getSplineDegree(void) const {return SPLINE_DEGREE; }
-    //! A emthod returning the total number of B-splines basis functions.
+    //! A method returning the total number of B-splines basis functions.
     UInt getSplineNumber (void) const {return spline.num_knots()-SPLINE_DEGREE-1;}
+    //! A method returning the penalization parameters (in time). It calls the same method of DEData_time class.
+    Real getLambda_time(UInt i) const {return deData_time_.getLambda_time(i);}
+    //! A method returning the number of lambdas (in time). It calls the same method of DEData_time class.
+    UInt getNlambda_time()  const {return deData_time_.getNlambda_time();}
+    //! A method returning the vector of the points indices active for B-spline j
+    const std::vector<UInt>& getDataIndex_Heat(UInt j) const {return data_Heat_.at(j);}
 
     //! A method computing the matrix needed for the penalizing term in space.
-    const SpMat computePen_s(void) const {return kroneckerProduct(this->getP().sparseView(), getTimeMass());}
+    const SpMat computePen_s(void) const {return Ps_;}
+    //const SpMat computePen_s(void) const {return kroneckerProduct(getTimeMass(), this->getP().sparseView());}
     //! A method computing the matrix needed for the penalizing term in time.
-    const SpMat computePen_t(void) const {return kroneckerProduct(this->getMass(), getPt());}
+    const SpMat computePen_t(void) const {
+        SpMat mass_temp = this->getMass();
+        mass_temp.setIdentity();
+        return kroneckerProduct(getPt(),mass_temp);
+    }
+    //const SpMat computePen_t(void) const {return kroneckerProduct(getPt(),this->getMass());}
+    //const SpMat computePen_t(void) const {return kroneckerProduct(this->getMass(), getPt());}
+    //const SpMat computePen_t(void) const {return kroneckerProduct(getLumped(), getPt());}
 
     //getter for time mesh
     //! A method returning the time mesh.

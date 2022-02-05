@@ -37,7 +37,8 @@ template<UInt ORDER, UInt mydim, UInt ndim>
 class FunctionalProblem_time {
 private:
     using Integrator = typename DensityIntegratorHelper::Integrator<mydim>;
-    using IntegratorP5 = IntegratorGaussP5;
+    //using Integrator_t = IntegratorGaussP5;
+    using Integrator_t = IntegratorGaussP9;
     static constexpr UInt EL_NNODES = how_many_nodes(ORDER, mydim);
 
     //! A member to access DataProblem_time methods.
@@ -50,7 +51,7 @@ public:
     //! A constructor.
     FunctionalProblem_time(const DataProblem_time<ORDER, mydim, ndim>& dp_t) : dataProblem_time_(dp_t){};
     //! A method to compute the functional for the g-function. Output: loss, gradient, llik, penterms.
-    std::tuple<Real, VectorXr, Real, Real, Real> computeFunctional_g(const VectorXr& g, Real lambda_S, Real lambda_T,
+    std::tuple<Real, VectorXr, Real, Real, Real> computeFunctional_g(const VectorXr& g, Real lambda, Real lambda_T,
                                                                      const SpMat& Upsilon) const;
     //! A method to compute the log-likelihood and the penalization terms for the f-function.
     std::tuple<Real, Real, Real> computeLlikPen_f(const VectorXr& f) const;

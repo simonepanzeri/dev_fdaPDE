@@ -21,7 +21,7 @@ private:
     Real heatStep_;
     // Number of iterations for the heat diffusion process.
     UInt heatIter_;
-    // Penalization parameters. The best one is chosen with k fold cross validation.
+    // Penalization parameters (in space). The best one is chosen with k fold cross validation.
     std::vector<Real> lambda_;
     // Number of folds for cross validation.
     UInt Nfolds_;
@@ -66,9 +66,9 @@ public:
     UInt getHeatIter() const {return heatIter_;}
     //! A method returning a bool which says if there is a user's initial density.
     bool isFvecEmpty() const {return fvec_.size() == 0;}
-    //! A method returning the penalization parameters.
+    //! A method returning the penalization parameters (in space).
     Real getLambda(UInt i) const {return lambda_[i];}
-    //! A method returning the number of lambdas.
+    //! A method returning the number of lambdas (in space).
     UInt getNlambda()  const {return lambda_.size();}
     //! A method returning the number of folds for CV.
     UInt getNfolds()  const {return Nfolds_;}
@@ -102,11 +102,13 @@ private:
     //! A data structure containing in data_noD.first the IDs of the locations with no duplicates
     //! and in data_noD.second the time indices from data_time_noD_ in which each spatial observation is observed.
     std::map<UInt, std::set<UInt>> data_noD_;
+    //! Penalization parameters (in time). The best one is chosen with k fold cross validation.
+    std::vector<Real> lambda_time_;
 
-    //! A method to insert in data_noD_ the point ID i as key and the positions that the time instants (at which i is
-    //! observed) take in data_time_noD_ as values in the set corresponding to the i-th key (j is the duplicated ID
+    //! A method to insert in data_noD_ the point ID i as key and the position that the time instant t (at which i is
+    //! observed) take in data_time_noD_ as value in the set corresponding to the i-th key (considering duplicated IDs
     //! with respect to i, if any).
-    void insert(UInt i, UInt j) {data_noD_[i].insert(std::find(data_time_noD_.begin(), data_time_noD_.end(), data_time_[j])-data_time_noD_.begin());}
+    void insert(UInt i, Real t) {data_noD_[i].insert(std::find(data_time_noD_.begin(), data_time_noD_.end(), t)-data_time_noD_.begin());}
     void insert(UInt i) {insert(i,i);}
     //! An helper function for the construction of the data_noD_ map that checks whether a certain spatial location with
     //! ID equal to k has already been inserted in the map, by relying on a helper set.
@@ -114,7 +116,10 @@ private:
 
 public:
     //! Constructor
-    DEData_time(const std::vector<Point<ndim>>& data, const std::vector<Real>& data_time);
+    DEData_time(const std::vector<Real>& data_time, const std::vector<Real>& lambda_time);
+
+    //! A method to clear data_time_noD_ and data_noD_, removing data that are not inside the spatio-temporal domain of interest.
+    void createMap (const std::vector<Point<ndim>>& data);
 
     //! Getters
     //! A method to access the data.
@@ -131,15 +136,20 @@ public:
     UInt dataSize() const {return data_time_.size();}
     //! A method returning the number of data time evaluations.
     UInt timeSize_noD() const {return data_time_noD_.size();}
+    //! A method returning the penalization parameters (in time).
+    Real getLambda_time(UInt i) const {return lambda_time_[i];}
+    //! A method returning the number of lambdas (in time).
+    UInt getNlambda_time()  const {return lambda_time_.size();}
+
     //! The following two methods need to be used coupled:
     //! A method returning the IDs of spatial data points (without duplicates).
-    const std::vector<UInt> getID_noD() const;
+    std::vector<UInt> getID_noD() const;
     //! A method returning the time indices in which point id appears.
     const std::set<UInt>& getTimesIndices(UInt id) const;
 
     //! Print
     //! A method printing data.
-    void printData(std::ostream & out) const;
+    void printData(std::ostream& out) const;
     //! A method printing the map.
     void printMap(std::ostream& out) const;
 };

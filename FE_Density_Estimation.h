@@ -35,7 +35,7 @@ private:
     std::vector<Real> CV_errors_;
 
 public:
-    //! A costructor
+    //! A constructor
     FEDE(const DataProblem<ORDER, mydim, ndim>& dp,
          const FunctionalProblem<ORDER, mydim, ndim>& fp,
          std::shared_ptr<MinimizationAlgorithm<ORDER, mydim, ndim>> ma, const std::string& p);

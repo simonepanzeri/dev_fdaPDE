@@ -9,12 +9,6 @@
 #include "Mesh_Objects.h"
 #include "AD_Tree.h"
 
-template<typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
-{
-    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
 template <UInt ORDER, UInt mydim, UInt ndim>
 class MeshHandler {
     static_assert((ORDER == 1 || ORDER == 2) &&

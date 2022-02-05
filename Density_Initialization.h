@@ -124,7 +124,7 @@ public:
     //! A destructor.
     virtual ~DensityInitialization_time(){};
     //! A pure virtual method to compute density initialization.
-    virtual const VectorXr* chooseInitialization(Real lambda) const = 0;
+    virtual const VectorXr* chooseInitialization(Real lambda_S, Real lambda_T) const = 0;
 };
 
 /*!  @brief A class dealing with the user's density initialization.
@@ -140,7 +140,67 @@ public:
     //! Delegating constructor
     UserInitialization_time(const DataProblem_time<ORDER, mydim, ndim>& dp);
     //! An overridden method to compute density initialization when the user gives it.
-    const VectorXr* chooseInitialization(Real lambda) const override;
+    const VectorXr* chooseInitialization(Real lambda_S, Real lambda_T) const override;
+};
+
+/*!  @brief A class dealing with the density initialization given by a discretized heat diffusion process.
+    It implements some methods useful to perform the discretized heat diffusion process and to choose the best initialization.
+*/
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+class HeatProcess_time : public DensityInitialization_time<ORDER, mydim, ndim>{
+protected:
+    static constexpr UInt EL_NNODES = DensityInitialization_time<ORDER, mydim, ndim>::EL_NNODES;
+    // A member to access functional methods
+    const FunctionalProblem_time<ORDER, mydim, ndim>& funcProblem_;
+    // A vector of vectors containing all the possible initial densities given by the heat diffusion process
+    std::vector<VectorXr> init_proposals_;
+    // patch_areas_: for each mesh node it saves the sum of the area of each triangle that has that node
+    VectorXr patch_areas_;
+    //  Parameters useful for the initialization of the density
+    UInt niter_;
+    Real alpha_;
+    // Parameter to modify the initial density
+    const Real epsilon_ = 1e-10;
+    // Loglikelihood for each possible initial density
+    VectorXr llik_;
+    // Penalization term for each possible initial density
+    VectorXr penSterm_, penTterm_;
+
+    //! A method to compute the patch_areas_.
+    void computePatchAreas();
+    //! A method to compute the density exploiting only the data.
+    //VectorXr computeDensityOnlyData();
+    VectorXr computeDensityOnlyData(UInt);
+    //! A method that provides a set of starting densities.
+    void computeStartingDensities();
+
+public:
+    //! A Constructor.
+    HeatProcess_time(const DataProblem_time<ORDER, mydim, ndim>& dp,
+                const FunctionalProblem_time<ORDER, mydim, ndim>& fp);
+    //! An overridden method to compute density initialization when it needs to be chosen among the proposals given by a discretized heat diffusion process.
+    const VectorXr* chooseInitialization(Real lambda_S, Real lambda_T) const override;
+};
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+class Heat_CV_time : public HeatProcess_time<ORDER, mydim, ndim>{
+
+private:
+    static constexpr UInt EL_NNODES = HeatProcess_time<ORDER, mydim, ndim>::EL_NNODES;
+    KfoldCV_L2_error_time<ORDER, mydim, ndim> error_;
+
+    UInt nFolds_;
+    std::vector<Real> cv_errors_;
+    std::vector<UInt> K_folds_;
+    UInt init_best_;
+
+    void perform_init_cv();
+public:
+    //! A Constructor.
+    Heat_CV_time(const DataProblem_time<ORDER, mydim, ndim>& dp,  const FunctionalProblem_time<ORDER, mydim, ndim>& fp, UInt K);
+
+    const VectorXr* chooseInitialization(Real lambda_S, Real lambda_T) const override;
 };
 
 #include "Density_Initialization_imp.h"

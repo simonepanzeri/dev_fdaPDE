@@ -14,7 +14,8 @@ class Spline
                   "ERROR! TRYING TO INSTANTIATE SPLINE WITH NEGATIVE DEGREE/ORDER OF DERIVATIVE! See Spline.h");
 
 public:
-    using Integrator = IntegratorGaussP5;
+    //using Integrator = IntegratorGaussP5;
+    using Integrator = IntegratorGaussP9;
 
     //! A Constructor that initializes the vector of knots of the spline (including multiple knots)
     Spline(const Real *t_instants, const UInt n_time_instants)

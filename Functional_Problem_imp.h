@@ -74,44 +74,46 @@ FunctionalProblem<ORDER, mydim, ndim>::computeLlikPen_f(const VectorXr& f) const
     return std::pair<Real, Real>(llik,pen);
 }
 
+/*
 template<UInt ORDER, UInt mydim, UInt ndim>
 std::pair<Real, VectorXr>
 FunctionalProblem_time<ORDER, mydim, ndim>::computeIntegrals(const VectorXr& g) const{
     // Kronecker product of the Gauss quadrature rules weights
     VectorXr weights_kronecker;
-    weights_kronecker.resize(Integrator::NNODES*IntegratorP5::NNODES);
+    weights_kronecker.resize(Integrator::NNODES*Integrator_t::NNODES);
     UInt k=0;
     for (UInt i = 0;  i < Integrator::NNODES; i++) {
-        for (UInt j = 0;  j < IntegratorP5::NNODES; j++){
-            weights_kronecker(k) = Integrator::WEIGHTS[i]*IntegratorP5::WEIGHTS[j];
+        for (UInt j = 0;  j < Integrator_t::NNODES; j++){
+            weights_kronecker[k] = Integrator::WEIGHTS[i]*Integrator_t::WEIGHTS[j];
             ++k;
         }
     }
-    weights_kronecker.transpose();
+
     // Initialization
     Real int1 = 0.;
     VectorXr int2 = VectorXr::Zero(dataProblem_time_.getNumNodes()*dataProblem_time_.getSplineNumber());
     const MatrixXr& PsiQuad = dataProblem_time_.getPsiQuad();
     UInt global_idx = 0; //index that keeps track of the first B-spline basis function active in the current time-interval
-    for (int time_step = 0; time_step < dataProblem_time_.getNumNodes_time()-1; ++time_step) {
+    for (int time_step = 0; time_step < dataProblem_time_.getNumNodes_time()-1;  ++time_step) {
         MatrixXr PhiQuad = dataProblem_time_.fillPhiQuad(time_step);
         MatrixXr Psi_kronecker_Phi = kroneckerProduct_Matrix(PsiQuad,PhiQuad);
         for(UInt triangle = 0; triangle < dataProblem_time_.getNumElements(); triangle++) {
             Element<EL_NNODES, mydim, ndim> tri_activated = dataProblem_time_.getElement(triangle);
-// (1) -------------------------------------------------
+//// (1) -------------------------------------------------
             VectorXr sub_g;
+            sub_g.resize(Psi_kronecker_Phi.cols());
             UInt k=0; //index for sub_g
             for (UInt i = 0; i < PsiQuad.cols(); ++i) {
                 UInt global_location = tri_activated[i].getId()*dataProblem_time_.getSplineNumber();
                 for (UInt j = global_idx; j < global_idx + PhiQuad.cols(); ++j) {
-                    sub_g.resize(k+1);
-                    sub_g(k)=g[global_location + j];
+                    sub_g[k]=g[global_location + j];
                     ++k;
                 }
             }
+
             VectorXr expg = (Psi_kronecker_Phi*sub_g).array().exp();
-            int1 += expg.dot(weights_kronecker) * tri_activated.getMeasure() * (dataProblem_time_.getMesh_time()[time_step+1]-dataProblem_time_.getMesh_time()[time_step])/2;
-// (2) -------------------------------------------------
+            int1 += expg.dot(weights_kronecker.transpose()) * tri_activated.getMeasure() * (dataProblem_time_.getMesh_time()[time_step+1]-dataProblem_time_.getMesh_time()[time_step])/2;
+//// (2) -------------------------------------------------
             VectorXr sub_int2;
             sub_int2 = Psi_kronecker_Phi.transpose() *
                        expg.cwiseProduct(weights_kronecker) * tri_activated.getMeasure() * (dataProblem_time_.getMesh_time()[time_step+1]-dataProblem_time_.getMesh_time()[time_step])/2;
@@ -124,7 +126,60 @@ FunctionalProblem_time<ORDER, mydim, ndim>::computeIntegrals(const VectorXr& g) 
                 }
             }
         }
-        if(time_step>=dataProblem_time_.getSplineDegree()) ++global_idx;
+        ++global_idx;
+    }
+    return std::pair<Real, VectorXr> (int1, int2);
+}
+*/
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+std::pair<Real, VectorXr>
+FunctionalProblem_time<ORDER, mydim, ndim>::computeIntegrals(const VectorXr& g) const{
+    // Kronecker product of the Gauss quadrature rules weights
+    VectorXr weights_kronecker;
+    weights_kronecker.resize(Integrator::NNODES*Integrator_t::NNODES);
+    UInt k=0;
+    for (UInt i = 0;  i < Integrator_t::NNODES; i++) {
+        for (UInt j = 0;  j < Integrator::NNODES; j++){
+            weights_kronecker[k] = Integrator::WEIGHTS[j]*Integrator_t::WEIGHTS[i];
+            ++k;
+        }
+    }
+
+    // Initialization
+    Real int1 = 0.;
+    VectorXr int2 = VectorXr::Zero(dataProblem_time_.getNumNodes()*dataProblem_time_.getSplineNumber());
+    const MatrixXr& PsiQuad = dataProblem_time_.getPsiQuad(); //It is always the same
+    UInt global_idx = 0; //index that keeps track of the first B-spline basis function active in the current time-interval
+    for (int time_step = 0; time_step < dataProblem_time_.getNumNodes_time()-1;  ++time_step) {
+        MatrixXr PhiQuad = dataProblem_time_.fillPhiQuad(time_step); //PhiQuad changes at each time interval
+        MatrixXr Phi_kronecker_Psi = kroneckerProduct_Matrix(PhiQuad,PsiQuad);
+        for(UInt triangle = 0; triangle < dataProblem_time_.getNumElements(); triangle++) {
+            Element<EL_NNODES, mydim, ndim> tri_activated = dataProblem_time_.getElement(triangle);
+//// (1) -------------------------------------------------
+            VectorXr sub_g;
+            sub_g.resize(Phi_kronecker_Psi.cols());
+            UInt k=0; //index for sub_g
+            for (int j = global_idx; j < global_idx+PhiQuad.cols(); ++j) {
+                for (UInt i = 0; i < PsiQuad.cols(); ++i){
+                    sub_g[k++]=g[tri_activated[i].getId()+dataProblem_time_.getNumNodes()*j];
+                }
+            }
+
+            VectorXr expg = (Phi_kronecker_Psi*sub_g).array().exp();
+            int1 += expg.dot(weights_kronecker.transpose()) * tri_activated.getMeasure() * (dataProblem_time_.getMesh_time()[time_step+1]-dataProblem_time_.getMesh_time()[time_step])/2;
+//// (2) -------------------------------------------------
+            VectorXr sub_int2;
+            sub_int2 = Phi_kronecker_Psi.transpose() *
+                       expg.cwiseProduct(weights_kronecker) * tri_activated.getMeasure() * (dataProblem_time_.getMesh_time()[time_step+1]-dataProblem_time_.getMesh_time()[time_step])/2;
+            k=0;
+            for (int j = global_idx; j < global_idx+PhiQuad.cols(); ++j) {
+                for (UInt i = 0; i < PsiQuad.cols(); ++i){
+                    int2[tri_activated[i].getId()+dataProblem_time_.getNumNodes()*j] += sub_int2[k++];
+                }
+            }
+        }
+        ++global_idx;
     }
     return std::pair<Real, VectorXr> (int1, int2);
 }
@@ -139,15 +194,22 @@ FunctionalProblem_time<ORDER, mydim, ndim>::computeFunctional_g(const VectorXr& 
 
     const UInt n = Upsilon.rows(); // dataProblem_time_.dataSize()
     const Real llik = -(Upsilon*g).sum() + n * int1;
+    //std::cout << -(Upsilon*g).sum() << "   " << n << "   " << int1 << std::endl;
+
+    //std::cout << "-Upsilon*g: " << -(Upsilon*g).sum() << std::endl;
+    //std::cout << "n*int1: " << n*int1 << std::endl;
 
     const SpMat K1 = dataProblem_time_.computePen_s();
     const SpMat K2 = dataProblem_time_.computePen_t();
 
     const Real pen_S = g.dot(K1 * g);
+    //std::cout << "lambda_s*pen_s: " << lambda_S*pen_S << std::endl;
     const Real pen_T = g.dot(K2 * g);
+    //std::cout << "lambda_t*pen_t: " << lambda_T*pen_T << std::endl;
 
     VectorXr grad1 = - VectorXr::Constant(n,1).transpose()*Upsilon;
     VectorXr grad2 = n * int2;
+
     VectorXr grad3_S = 2*g.transpose() * K1;
     VectorXr grad3_T = 2*g.transpose() * K2;
 
@@ -159,10 +221,14 @@ FunctionalProblem_time<ORDER, mydim, ndim>::computeFunctional_g(const VectorXr& 
 template<UInt ORDER, UInt mydim, UInt ndim>
 std::tuple<Real, Real, Real>
 FunctionalProblem_time<ORDER, mydim, ndim>::computeLlikPen_f(const VectorXr& f) const {
-    Real llik = (dataProblem_time_.getUpsilon()*f).array().log().sum() + dataProblem_time_.dataSize() * dataProblem_time_.FEintegrate(f);
+
+    Real llik = (dataProblem_time_.getUpsilon()*f).array().log().sum() + dataProblem_time_.dataSize() * dataProblem_time_.FEintegrate_time(f);
+
     VectorXr tmp = f.array().log();
+
     const SpMat K1 = dataProblem_time_.computePen_s();
     const SpMat K2 = dataProblem_time_.computePen_t();
+
     Real pen_S = tmp.dot(K1 * tmp);
     Real pen_T = tmp.dot(K2 * tmp);
 

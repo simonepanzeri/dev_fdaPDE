@@ -163,7 +163,7 @@ struct IntegratorGaussP3 {
     static constexpr UInt ORDER = 1;
     //Number of nodes
     static constexpr UInt NNODES = 2;
-
+    //Point locations
     static constexpr std::array<Real, NNODES> WEIGHTS{{1., 1.}};
 
     static constexpr std::array<Real, NNODES> NODES{{-0.577350269189626, 0.577350269189626}};
@@ -177,6 +177,16 @@ struct IntegratorGaussP5 {
     static constexpr std::array<Real, NNODES> WEIGHTS{{5./9, 8./9, 5./9}};
 
     static constexpr std::array<Real, NNODES> NODES{{-0.774596669241483, 0, 0.774596669241483}};
+};
+
+struct IntegratorGaussP9 {
+    static constexpr UInt ORDER = 1;
+    //Number of nodes
+    static constexpr UInt NNODES = 5;
+    //Point locations
+    static constexpr std::array<Real, NNODES> WEIGHTS{{0.236926885056189, 0.478628670499366, 128./225, 0.478628670499366, 0.236926885056189}};
+
+    static constexpr std::array<Real, NNODES> NODES{{-0.906179845938664, -0.538469310105683, 0, 0.538469310105683, 0.906179845938664}};
 };
 
 #endif //DEV_FDAPDE_INTEGRATION_H

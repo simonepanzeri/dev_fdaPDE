@@ -31,6 +31,8 @@
 #include "eigen_library/Eigen/StdVector"
 #include "eigen_library/Eigen/IterativeLinearSolvers"
 
+#include "Make_Unique.h"
+
 typedef double Real;
 typedef int UInt;
 
