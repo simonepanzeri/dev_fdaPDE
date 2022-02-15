@@ -7,7 +7,7 @@
 
 #include "FdaPDE.h"
 
-//! brief@ A Factory class: a class for the choice of the step mehod for the optimization algorithm.
+//! @brief A Factory class: a class for the choice of the step method for the optimization algorithm.
 template<UInt ORDER, UInt mydim, UInt ndim>
 class DescentDirection_factory
 {
@@ -35,6 +35,7 @@ public:
 //! ######################################## SPACE-TIME PROBLEM ########################################################
 //! ####################################################################################################################
 
+//! @brief A Factory class: a class for the choice of the step method for the optimization algorithm (spatio-temporal setting).
 template<UInt ORDER, UInt mydim, UInt ndim>
 class DescentDirection_factory_time{
 public:

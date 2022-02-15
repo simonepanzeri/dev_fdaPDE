@@ -216,7 +216,6 @@ UserInitialization_time<ORDER, mydim, ndim>::UserInitialization_time(const DataP
         DensityInitialization_time<ORDER, mydim, ndim>(dp){
 
     initialization = dp.getFvec();
-    //std::cout<<" Initialization dim: "<<initialization.size()<<std::endl;
 
 }
 
@@ -246,8 +245,8 @@ HeatProcess_time<ORDER, mydim, ndim>::HeatProcess_time(const DataProblem_time<OR
     penSterm_.resize(niter_);
     penTterm_.resize(niter_);
 
-    //data_index_.resize(this->dataProblem_.dataSize());
-    //std::iota(data_index_.begin(),data_index_.end(),0);
+    data_index_.resize(this->dataProblem_.dataSize());
+    std::iota(data_index_.begin(),data_index_.end(),0);
 
     computePatchAreas();
     computeStartingDensities();
@@ -427,6 +426,14 @@ Heat_CV_time<ORDER, mydim, ndim>::perform_init_cv(){
 
 }
 
+
+template<UInt ORDER, UInt mydim, UInt ndim>
+const VectorXr*
+Heat_CV_time<ORDER, mydim, ndim>::chooseInitialization(Real lambda_S, Real lambda_T) const{
+
+    return &(this->init_proposals_[init_best_]);
+
+}
 
 
 #endif //DEV_FDAPDE_DENSITY_INITIALIZATION_IMP_H

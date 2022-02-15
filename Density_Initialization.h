@@ -175,6 +175,8 @@ protected:
     //! A method that provides a set of starting densities.
     void computeStartingDensities();
 
+    std::vector<UInt> data_index_;
+
 public:
     //! A Constructor.
     HeatProcess_time(const DataProblem_time<ORDER, mydim, ndim>& dp,

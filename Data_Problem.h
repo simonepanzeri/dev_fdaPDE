@@ -33,7 +33,8 @@ protected:
     //! A method to compute the matrix which evaluates the basis function at the quadrature EL_NNODES.
     void fillPsiQuad();
     //! A method to compute the GlobalPsi (evaluation on the data nodes)
-    virtual void fillGlobalPsi(); //!***
+    //virtual void fillGlobalPsi(); //!***
+    //void fillGlobalPsi();
 
 public:
     //! A constructor: it delegates DEData and MeshHandler constructors.
@@ -54,7 +55,7 @@ public:
     //! A method to compute the integral of the square of a function.
     Real FEintegrate_square(const VectorXr& f) const {return f.dot(R0_*f);}
     //! A method to compute the integral of the exponential of a function.
-    virtual Real FEintegrate_exponential(const VectorXr& g) const;
+    Real FEintegrate_exponential(const VectorXr& g) const;
     //! A method to compute the matrix which evaluates the basis function at the data points.
     SpMat computePsi(const std::vector<UInt>& indices) const;
 
@@ -138,28 +139,34 @@ private:
     using Integrator = typename DensityIntegratorHelper::Integrator<mydim>;
     //using Integrator_t = IntegratorGaussP5;
     using Integrator_t = IntegratorGaussP9;
-    Spline<SPLINE_DEGREE, ORDER_DERIVATIVE> spline;
+    Spline<SPLINE_DEGREE, ORDER_DERIVATIVE> spline_;
+
     //! A DEData_time object to store time data.
-    DEData_time<ndim> deData_time_;
+    DEData_time deData_time_;
     //! A vector containing the time mesh.
     std::vector<Real> mesh_time_;
     //! Matrix of the evaluations of the spline basis functions in the time locations and mass matrix.
-    SpMat GlobalPhi_, K0_, R0_Lumped;
+    SpMat GlobalPhi_, K0_;
     //! Time and space penalty matrix.
     SpMat Pt_, Ps_;
     //! Kronecker product between GlobalPsi_ and GlobalPhi_.
     SpMat Upsilon_;
-    //! A map used for the Heat initialization
-    std::map<UInt,std::vector<UInt>> data_Heat_;
+    //! Data structure used during the initialization procedure via discretized heat diffusion process.
+    std::vector<std::vector<UInt>> data_Heat_;
+    //! Flags related to penalty matrices.
+    bool flagMass_, flagLumped_;
+    //! Indices to keep track of how Upsilon_ is filled with respect to the order in which data appear in the dataset.
+    //! This data structure is useful to efficiently compute Upsilon_ during the CV preprocessing stage.
+    std::vector<UInt> Upsilon_indices_;
 
-    void fillGlobalPsi(void) override;
-    void fillGlobalPhi(void);
-    void fillTimeMass(void);
-    void fillTimeSecondDerivative(void);
-    void fillPenaltySpace(void);
-    void makeLumped(void);
-
-    void createMap_Heat(const std::vector<Real>& data_time);
+    //void fillGlobalPsi(void) override;
+    void fillGlobalPhi();
+    void fillTimeMass();
+    void fillTimeSecondDerivative();
+    SpMat makeLumped(const SpMat& mass) const;
+    void fillPenaltySpace();
+    void fillPenaltyTime();
+    void setDataHeat();
 
 public:
     //! A constructor:
@@ -169,12 +176,13 @@ public:
                      const UInt& nsim, const std::vector<Real>& stepProposals, Real tol1, Real tol2, bool print,
                      UInt search, const RNumericMatrix& points, const RIntegerMatrix& sides,
                      const RIntegerMatrix& elements, const RIntegerMatrix& neighbors,
-                     const std::vector<Real>& mesh_time, bool isTime = 1);
+                     const std::vector<Real>& mesh_time, bool isTime = 1, bool isTimeDiscrete = 0,
+                     bool flagMass = 0, bool flagLumped = 0);
 
     //! A method to compute the integral of a function.
     Real FEintegrate_time(const VectorXr& f) const {return (kroneckerProduct(getTimeMass(),this->getMass())*f).sum();}
     //! A method to compute the integral of the exponential of a function.
-    Real FEintegrate_exponential(const VectorXr& g) const override;
+    //Real FEintegrate_exponential(const VectorXr& g) const override;
 
     //! A method filling the current PhiQuad matrix needed for the discretization of the exponential integral.
     MatrixXr fillPhiQuad(UInt time_node) const;
@@ -182,48 +190,42 @@ public:
     //! A method computing the Upsilon matrix (kronecker product between GlobalPsi_ and GlobalPhi_, calculated
     //! considering for each spatial location only the proper rows of GlobalPhi_ corresponding to the time instants
     //! when that location is observed).
-    SpMat computeUpsilon(const SpMat& psi, const SpMat& phi) const;
-    SpMat computeUpsilon(const SpMat& psi, const SpMat& phi, const std::map<UInt, std::set<UInt>>& data_noD) const;
+    SpMat computeUpsilon(const SpMat& phi, const SpMat& psi);
+    //! A method to compute the Upsilon_ matrix by considering only locations and times in the positions stored in
+    //! indices. This method is needed for CV (only points that are in the considered fold are used).
     SpMat computeUpsilon(const std::vector<UInt>& indices) const;
+    //SpMat computeUpsilon(const SpMat& psi, const SpMat& phi, const std::map<UInt, std::set<UInt>>& data_noD) const;
+
+    //! A method computing the matrix needed for the penalizing term in space.
+    const SpMat computePen_s() const {return Ps_;}
+    //! A method computing the matrix needed for the penalizing term in time.
+    const SpMat computePen_t() const {return Pt_;}
 
     // Getters
     //! A method to access the data. It calls the same method of DEData class.
     const std::vector<Real>& data_time() const {return deData_time_.data();}
-    //! A method returning a datum.
+    //! A method returning a time datum.
     Real data_time(UInt i) const {return data_time()[i];}
-    //! A method returning the time penalty matrix.
-    SpMat getPt(void) const {return Pt_;}
-    //! A method returning the matrix of the evaluations of the spline basis functions.
-    const SpMat& getGlobalPhi(void) const {return GlobalPhi_;}
-    //! A method returning the Upsilon_ matrix.
-    const SpMat& getUpsilon() const {return Upsilon_;}
-    //! A method returning the time mass matrix.
-    SpMat getTimeMass(void) const {return K0_;}
-    //! A method returning the lumped space mass matrix.
-    SpMat getLumped(void) const {return R0_Lumped;}
     //! A method returning the spline degree.
     UInt getSplineDegree(void) const {return SPLINE_DEGREE; }
     //! A method returning the total number of B-splines basis functions.
-    UInt getSplineNumber (void) const {return spline.num_knots()-SPLINE_DEGREE-1;}
+    UInt getSplineNumber (void) const {return spline_.num_knots()-SPLINE_DEGREE-1;}
     //! A method returning the penalization parameters (in time). It calls the same method of DEData_time class.
     Real getLambda_time(UInt i) const {return deData_time_.getLambda_time(i);}
     //! A method returning the number of lambdas (in time). It calls the same method of DEData_time class.
     UInt getNlambda_time()  const {return deData_time_.getNlambda_time();}
     //! A method returning the vector of the points indices active for B-spline j
-    const std::vector<UInt>& getDataIndex_Heat(UInt j) const {return data_Heat_.at(j);}
+    const std::vector<UInt>& getDataIndex_Heat(UInt j) const {return data_Heat_[j];}
 
-    //! A method computing the matrix needed for the penalizing term in space.
-    const SpMat computePen_s(void) const {return Ps_;}
-    //const SpMat computePen_s(void) const {return kroneckerProduct(getTimeMass(), this->getP().sparseView());}
-    //! A method computing the matrix needed for the penalizing term in time.
-    const SpMat computePen_t(void) const {
-        SpMat mass_temp = this->getMass();
-        mass_temp.setIdentity();
-        return kroneckerProduct(getPt(),mass_temp);
-    }
-    //const SpMat computePen_t(void) const {return kroneckerProduct(getPt(),this->getMass());}
-    //const SpMat computePen_t(void) const {return kroneckerProduct(this->getMass(), getPt());}
-    //const SpMat computePen_t(void) const {return kroneckerProduct(getLumped(), getPt());}
+    // Getters for matrices
+    //! A method returning the time penalty matrix.
+    SpMat getPt() const {return Pt_;}
+    //! A method returning the matrix containing the evaluations of the spline basis functions.
+    const SpMat& getGlobalPhi() const {return GlobalPhi_;}
+    //! A method returning the Upsilon_ matrix.
+    const SpMat& getUpsilon() const {return Upsilon_;}
+    //! A method returning the time mass matrix.
+    SpMat getTimeMass() const {return K0_;}
 
     //getter for time mesh
     //! A method returning the time mesh.

@@ -10,7 +10,7 @@ int main() {
     // Template parameters
     const UInt ORDER = 1;
     const UInt mydim = 2;
-    const UInt ndim = 3;
+    const UInt ndim = 2;
 
     const UInt spline_degree = 3;
 
@@ -43,22 +43,23 @@ int main() {
     std::vector<Real> mesh_time = readMesh<Real>("../data/space_time/mesh/mesh_time.txt");
 
     // Parameters
-    const std::vector<Real> lambda{1e-2, 1e-1};
+    const std::vector<Real> lambda{1e-1, 1e-2};
     const std::vector<Real> lambda_time{1e-2, 1e-3};
     const std::vector<Real> stepProposals{0.001};
+
     const Real tol1 = 0.00001, tol2 = 0.;
     const UInt nsim = 5000;
 
-    VectorXr fvec = VectorXr::Ones(points_v.size()/ndim * (mesh_time.size()+spline_degree-1));
-    fvec = std::exp(1)*fvec;
-    //VectorXr fvec;
+    //VectorXr fvec = VectorXr::Ones(points_v.size()/ndim * (mesh_time.size()+spline_degree-1));
+    //fvec = std::exp(1)*fvec;
+    VectorXr fvec;
 
     //std::string direction_method = "Gradient";
     std::string direction_method = "BFGS";
 
-    //std::string step_method = "Fixed_Step";
+    std::string step_method = "Fixed_Step";
     //std::string step_method = "Backtracking_Method";
-    std::string step_method = "Wolfe_Method";
+    //std::string step_method = "Wolfe_Method";
 
     //std::string preprocess_method = "NoCrossValidation";
     //std::string preprocess_method = "RightCV";
@@ -77,15 +78,16 @@ int main() {
                         stepProposals, tol1, tol2, false, 1);
 
     // Density estimation data time
-    DEData_time<ndim> deData_time(data_time, lambda_time);
-    deData_time.createMap(data_locations);
-    deData_time.printMap(std::cout);
+    DEData_time deData_time(data_time, lambda_time);
+    deData_time.setTimes2Locations();
+    deData_time.printTimes2Locations(std::cout);
 */
     // Data problem time
     DataProblem_time<ORDER, mydim, ndim> dataProblem_time(data_locations, data_time, 2, fvec, 0.023,
-                                                          1000, lambda, lambda_time, n_folds, nsim, stepProposals, tol1, tol2,
-                                                          true, 1, points_m, sides_m,
-                                                          elements_m, neighbors_m, mesh_time);
+                                                          500, lambda, lambda_time, n_folds, nsim, stepProposals,
+                                                          tol1, tol2, true, 1, points_m, sides_m,
+                                                          elements_m, neighbors_m, mesh_time,
+                                                          1,0,0,0);
     std::cout << "DataProblem_time DONE" << std::endl;
 /*
     for (auto it = dataProblem_time.data().cbegin(); it != dataProblem_time.data().cend(); ++it) {
@@ -93,8 +95,7 @@ int main() {
         std::cout << '\t' << "id ";
         operator << (std::cout, *it);
     }
-
-
+*/
     // Functional problem time
     FunctionalProblem_time<ORDER, mydim, ndim> functionalProblem_time(dataProblem_time);
 /*
@@ -105,7 +106,7 @@ int main() {
     std::cout << "Log-likelihood: " << std::get<2>(result) << std::endl;
     std::cout << "Spatial penalization: " << std::get<3>(result) << std::endl;
     std::cout << "Temporal penalization: " << std::get<4>(result) << std::endl;
-
+*/
     std::cout << "FunctionalProblem_time DONE" << std::endl;
 
     // Minimization algorithm time
@@ -129,7 +130,7 @@ int main() {
     Real lambda_sol_S = fede_time.getBestLambda_S();
     Real lambda_sol_T = fede_time.getBestLambda_T();
     std::vector<Real> CV_errors = fede_time.getCvError();
-    //const std::vector<Point<ndim> >& data = dataProblem_time.data();
+    //const std::vector<Point<ndim>>& data = dataProblem_time.data();
     //const std::vector<Real>& data_t = dataProblem_time.data_time();
 
     std::cout << std::endl << std::endl;
@@ -146,7 +147,8 @@ int main() {
     UInt ns = points_v.size()/ndim;
     UInt M = dataProblem_time.getSplineNumber();
 
-    std::vector<Real> t{0, M_PI/8, M_PI/4, 3*M_PI/8, M_PI/2, 5*M_PI/8, 3*M_PI/4, 7*M_PI/8, M_PI};
+    //std::vector<Real> t{0, M_PI/8, M_PI/4, 3*M_PI/8, M_PI/2, 5*M_PI/8, 3*M_PI/4, 7*M_PI/8, M_PI};
+    std::vector<Real> t{mesh_time};
 
     VectorXr result = createSTSolution(ns, M, mesh_time, t, g_sol);
 

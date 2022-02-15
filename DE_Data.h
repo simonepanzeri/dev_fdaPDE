@@ -92,19 +92,22 @@ public:
     void printData(std::ostream & out) const;
 };
 
-template <UInt ndim>
 class DEData_time {
 private:
     //! A vector containing the time observations from data (it may contain duplicates).
     std::vector<Real> data_time_;
     //! A vector containing the time observations (without duplicates).
-    std::vector<Real> data_time_noD_;
+    std::vector<Real> times_;
+    //! Penalization parameters (in time). The best one is chosen with k fold cross validation.
+    std::vector<Real> lambda_time_;
+    //! Data structure connecting time indices (with respect to the chronological order) to the positions of locations
+    //! (ordered as data appear in the clean dataset) that are observed at the time instants indexed as above.
+    //! This structure is useful to build the Upsilon_ FEmatrix in the DataProblem_time class.
+    std::vector<std::vector<UInt>> Times2Locations_;
+/*
     //! A data structure containing in data_noD.first the IDs of the locations with no duplicates
     //! and in data_noD.second the time indices from data_time_noD_ in which each spatial observation is observed.
     std::map<UInt, std::set<UInt>> data_noD_;
-    //! Penalization parameters (in time). The best one is chosen with k fold cross validation.
-    std::vector<Real> lambda_time_;
-
     //! A method to insert in data_noD_ the point ID i as key and the position that the time instant t (at which i is
     //! observed) take in data_time_noD_ as value in the set corresponding to the i-th key (considering duplicated IDs
     //! with respect to i, if any).
@@ -113,45 +116,47 @@ private:
     //! An helper function for the construction of the data_noD_ map that checks whether a certain spatial location with
     //! ID equal to k has already been inserted in the map, by relying on a helper set.
     bool isAlready(UInt k, const std::set<UInt>& set_helper) const {return (set_helper.find(k)!=set_helper.end());}
-
+*/
 public:
     //! Constructor
     DEData_time(const std::vector<Real>& data_time, const std::vector<Real>& lambda_time);
 
     //! A method to clear data_time_noD_ and data_noD_, removing data that are not inside the spatio-temporal domain of interest.
-    void createMap (const std::vector<Point<ndim>>& data);
+    void setTimes2Locations();
 
     //! Getters
     //! A method to access the data.
     std::vector<Real>& data() {return data_time_;}
     //! A const method to access the data.
     const std::vector<Real>& data() const {return data_time_;}
-    //! A const method to access the data stored in the data_noD_ map.
-    const std::map<UInt, std::set<UInt>>& getMap() const {return data_noD_;}
+    //! A const method to access the Times2Locations_ data structure at the i-th time index.
+    const std::vector<UInt>& getTimes2Locations(UInt i) const {return Times2Locations_[i];}
     //! A method to access the data (without duplicates).
-    std::vector<Real>& data_noD() {return data_time_noD_;}
+    std::vector<Real>& times() {return times_;}
     //! A const method to access the time data (without duplicates).
-    const std::vector<Real>& data_noD() const {return data_time_noD_;}
+    const std::vector<Real>& times() const {return times_;}
+    //! A const method to access the i-th time data.
+    const Real time(UInt i) const {return times_.size()!=0 ? times_[i] : data_time_[i];}
+    //! A method returning the number of distinct time data.
+    UInt getNTimes() const {return times_.size()!=0 ? times_.size() : data_time_.size();}
     //! A method returning the number of observations.
     UInt dataSize() const {return data_time_.size();}
-    //! A method returning the number of data time evaluations.
-    UInt timeSize_noD() const {return data_time_noD_.size();}
     //! A method returning the penalization parameters (in time).
     Real getLambda_time(UInt i) const {return lambda_time_[i];}
     //! A method returning the number of lambdas (in time).
     UInt getNlambda_time()  const {return lambda_time_.size();}
-
+/*
     //! The following two methods need to be used coupled:
     //! A method returning the IDs of spatial data points (without duplicates).
     std::vector<UInt> getID_noD() const;
     //! A method returning the time indices in which point id appears.
     const std::set<UInt>& getTimesIndices(UInt id) const;
-
+*/
     //! Print
     //! A method printing data.
     void printData(std::ostream& out) const;
     //! A method printing the map.
-    void printMap(std::ostream& out) const;
+    void printTimes2Locations(std::ostream& out) const;
 };
 
 #include "DE_Data_imp.h"

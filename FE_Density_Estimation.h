@@ -50,8 +50,7 @@ public:
     std::vector<const VectorXr*> getInitialDensity() const {return fInit_;}
     //! A method returning the smmothing parameter selected.
     Real getBestLambda() const {return bestLambda_;}
-
-    // to delete
+    //! A method returning CV errors.
     std::vector<Real> getCvError() const {return CV_errors_;}
 
 
@@ -85,7 +84,7 @@ private:
     std::vector<Real> CV_errors_;
 
 public:
-    //! A costructor
+    //! A constructor.
     FEDE_time(const DataProblem_time<ORDER, mydim, ndim>& dp,
          const FunctionalProblem_time<ORDER, mydim, ndim>& fp,
          std::shared_ptr<MinimizationAlgorithm_time<ORDER, mydim, ndim>> ma, const std::string& p);
@@ -98,11 +97,10 @@ public:
     VectorXr getDensity_g() const {return gcoeff_;}
     //! A method returning initial densities.
     std::vector<const VectorXr*> getInitialDensity() const {return fInit_;}
-    //! A method returning the smmothing parameter selected.
+    //! A method returning the smoothing parameters selected in space and in time.
     Real getBestLambda_S() const {return bestLambda_S;}
     Real getBestLambda_T() const {return bestLambda_T;}
-
-    // to delete
+    //! A method returning CV errors.
     std::vector<Real> getCvError() const {return CV_errors_;}
 
 

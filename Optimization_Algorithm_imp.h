@@ -440,7 +440,7 @@ FixedStep_time<ORDER,mydim,ndim>::apply_core(const SpMat& Upsilon, Real lambda_S
 ///*************************************************************************
 
         if(this->dataProblem_.Print()){
-            //std::cout << "Loss: " << loss << ", llik: " << llik << ", pen_S: " << pen_S << ", pen_T: " << pen_T << ", norm_Lp: " << norm_grad << std::endl;
+            std::cout << "Loss: " << loss << ", llik: " << llik << ", pen_S: " << pen_S << ", pen_T: " << pen_T << ", norm_Lp: " << norm_grad << std::endl;
             //Rprintf("loss %f, llik %f, pen_S %f, pen_T %f, norm_Lp %f\n", loss, llik, pen_S, pen_T, norm_grad);
         }
 
@@ -490,7 +490,7 @@ FixedStep_time<ORDER,mydim,ndim>::apply_core(const SpMat& Upsilon, Real lambda_S
             }
 
             if(this->dataProblem_.Print()){
-                //std::cout << "Iter: " << i+1 << ", loss: " << loss << ", llik: " << llik << ", pen_S: " << pen_S << ", pen_T: " << pen_T << ", norm_Lp: " << norm_grad << std::endl;
+                std::cout << "Iter: " << i+1 << ", loss: " << loss << ", llik: " << llik << ", pen_S: " << pen_S << ", pen_T: " << pen_T << ", norm_Lp: " << norm_grad << std::endl;
                 //Rprintf("Iter %d, loss %f, llik %f, pen_S %f, pen_T %f, norm_Lp %f\n", i+1, loss, llik, pen_S, pen_T, norm_grad);
             }
         }

@@ -11,8 +11,7 @@ DEData<ndim>::DEData(const std::vector<Point<ndim>>& data, const UInt& order, co
                      const std::vector<Real>& stepProposals, Real tol1, Real tol2, bool print, UInt search) :
         data_(data), order_(order), fvec_(fvec), heatStep_(heatStep), heatIter_(heatIter), lambda_(lambda),
         Nfolds_(nfolds), nsim_(nsim), stepProposals_(stepProposals), tol1_(tol1), tol2_(tol2), print_(print),
-        search_(search) {
-}
+        search_(search) {}
 
 template<UInt ndim>
 void DEData<ndim>::printData(std::ostream & out) const
@@ -23,12 +22,12 @@ void DEData<ndim>::printData(std::ostream & out) const
     }
 }
 
-template <UInt ndim>
-DEData_time<ndim>::DEData_time(const std::vector<Real>& data_time, const std::vector<Real>& lambda_time) :
+DEData_time::DEData_time(const std::vector<Real>& data_time, const std::vector<Real>& lambda_time) :
     data_time_(data_time), lambda_time_(lambda_time) {}
 
+/*
 template<UInt ndim>
-void DEData_time<ndim>::createMap(const std::vector<Point<ndim>>& data) {
+void DEData_time::createMap(const std::vector<Point<ndim>>& data) {
     static constexpr Real eps = std::numeric_limits<Real>::epsilon(), tolerance = 100 * eps;
 
     data_time_noD_.clear();
@@ -58,8 +57,7 @@ void DEData_time<ndim>::createMap(const std::vector<Point<ndim>>& data) {
     set_helper.clear();
 }
 
-template <UInt ndim>
-std::vector<UInt> DEData_time<ndim>::getID_noD() const {
+std::vector<UInt> DEData_time::getID_noD() const {
     std::vector<UInt> noDup;
     noDup.reserve(data_noD_.size());
     for(const auto &s : data_noD_)
@@ -71,21 +69,43 @@ template <UInt ndim>
 const std::set<UInt>& DEData_time<ndim>::getTimesIndices(UInt id) const {
     return data_noD_.find(id)->second;
 };
+*/
 
-template <UInt ndim>
-void DEData_time<ndim>::printData(std::ostream& out) const {
+void DEData_time::setTimes2Locations() {
+    static constexpr Real eps = std::numeric_limits<Real>::epsilon(), tolerance = 100 * eps;
+
+    //extraction of non duplicated times
+    std::set<Real> set_times(data_time_.cbegin(),data_time_.cend());
+    times_.resize(set_times.size());
+    (void)std::copy(set_times.begin(), set_times.end(), times_.begin());
+    //std::vector<Real> v(set_time_noD.begin(), set_time_noD.end());
+    //data_time_noD_.swap(v);
+    set_times.clear();
+
+    //creation of the data structure containing for each time index i, the location indices that are observed at time i
+    //(ordered as data appear in the clean dataset).
+    Times2Locations_.resize(times_.size());
+    for(UInt t = 0; t < times_.size(); ++t)
+    {
+        for (UInt d = 0; d < data_time_.size(); ++d) {
+            if (data_time_[d] == times_[t])
+                Times2Locations_[t].push_back(d);
+        }
+    }
+}
+
+void DEData_time::printData(std::ostream& out) const {
     for(int i = 0; i < data_time_.size(); i++)
     {
         out << data_time_[i] << std::endl;
     }
 }
 
-template<UInt ndim>
-void DEData_time<ndim>::printMap(std::ostream& out) const {
-    for(std::map<UInt, std::set<UInt>>::const_iterator it = data_noD_.cbegin(); it != data_noD_.cend(); ++it) {
-        out << "id: " << it->first << '\t' << "times: ";
-        for(const UInt& t : it->second)
-            out << std::setw(3) << t;
+void DEData_time::printTimes2Locations(std::ostream& out) const {
+    for(std::vector<std::vector<UInt>>::const_iterator it = Times2Locations_.cbegin(); it != Times2Locations_.cend(); ++it) {
+        out << "time index: " << it-Times2Locations_.cbegin() << '\t' << "[location index]:";
+        for(UInt i : *it)
+            out << " " << i;
         out << std::endl;
     }
 }

@@ -15,7 +15,7 @@ Preprocess<ORDER, mydim, ndim>::Preprocess(const DataProblem<ORDER, mydim, ndim>
     fInit_.resize(dp.getNlambda());
     fillFInit();
 
-};
+}
 
 
 template<UInt ORDER, UInt mydim, UInt ndim>
@@ -175,7 +175,7 @@ Preprocess_time<ORDER, mydim, ndim>::Preprocess_time(const DataProblem_time<ORDE
 
     fInit_.resize(dp.getNlambda()*dp.getNlambda_time());
     fillFInit();
-};
+}
 
 template<UInt ORDER, UInt mydim, UInt ndim>
 void

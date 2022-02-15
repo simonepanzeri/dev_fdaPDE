@@ -115,6 +115,7 @@ SpMat kroneckerProduct(const SpMat& A, const SpMat& B) {
     return(AB);
 }
 
+
 MatrixXr kroneckerProduct_Matrix (const MatrixXr& A, const MatrixXr& B)
 {
     MatrixXr C;

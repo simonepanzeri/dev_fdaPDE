@@ -13,7 +13,7 @@
 //    return std::make_shared<T>(new T(std::forward<Args>(args)...));
 //}
 
-//!brief@ A Factory class: a class for the choice of the step mehod for the optimization algorithm.
+//! @brief A Factory class: a class for the choice of the step mehod for the optimization algorithm.
 template<UInt ORDER, UInt mydim, UInt ndim>
 class MinimizationAlgorithm_factory
 {
@@ -34,7 +34,7 @@ public:
 
             //Rprintf("Unknown step option - using fixed step\n");
 
-            return std::make_shared<FixedStep<ORDER, mydim, ndim>>(dp, fp,  std::move(d));
+            return std::make_shared<FixedStep<ORDER, mydim, ndim>>(dp, fp, std::move(d));
         }
     }
 

@@ -124,7 +124,7 @@ VectorXr createSTSolution (const UInt ns, const UInt M, const std::vector<Real>&
 }
 */
 
-// Generate the solution (evaluating at mesh_time time instants)
+// Generate the solution (evaluating at t time instants)
 VectorXr createSTSolution (const UInt ns, const UInt M, const std::vector<Real>& mesh_time, const std::vector<Real>& t,
                            const VectorXr& g_sol) {
     const UInt nt = mesh_time.size();
