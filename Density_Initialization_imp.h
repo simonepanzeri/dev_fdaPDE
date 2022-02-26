@@ -30,7 +30,7 @@ HeatProcess<ORDER, mydim, ndim>::HeatProcess(const DataProblem<ORDER, mydim, ndi
                                              const FunctionalProblem<ORDER, mydim, ndim>& fp):
         DensityInitialization<ORDER, mydim, ndim>(dp), funcProblem_(fp){
 
-    patch_areas_= VectorXr::Zero(this->dataProblem_.getNumNodes());
+    patch_areas_ = computePatchAreas(dp.getMesh());
     alpha_=dp.getHeatStep();
     niter_=dp.getHeatIter();
     init_proposals_.resize(niter_);
@@ -40,21 +40,20 @@ HeatProcess<ORDER, mydim, ndim>::HeatProcess(const DataProblem<ORDER, mydim, ndi
     data_index_.resize(this->dataProblem_.dataSize());
     std::iota(data_index_.begin(),data_index_.end(),0);
 
-    computePatchAreas();
     computeStartingDensities();
 
 }
 
 
 template<UInt ORDER, UInt mydim, UInt ndim>
-void
-HeatProcess<ORDER, mydim, ndim>::computePatchAreas(){
-
-    for(UInt t=0; t<this->dataProblem_.getNumElements(); ++t){
-        Element<EL_NNODES, mydim, ndim> current_element = this->dataProblem_.getElement(t);
+VectorXr HeatProcess<ORDER, mydim, ndim>::computePatchAreas(const MeshHandler<ORDER, mydim, ndim>& mesh){
+    VectorXr patch_areas = VectorXr::Zero(mesh.num_nodes());
+    for(UInt t=0; t<mesh.num_elements(); ++t){
+        Element<EL_NNODES, mydim, ndim> current_element = mesh.getElement(t);
         for(const auto& node : current_element)
-            patch_areas_[node.id()] += current_element.getMeasure();
+            patch_areas[node.id()] += current_element.getMeasure();
     }
+    return patch_areas;
 }
 
 
@@ -237,7 +236,7 @@ HeatProcess_time<ORDER, mydim, ndim>::HeatProcess_time(const DataProblem_time<OR
 
     //std::cout<<"INTO HEAT PROCESS CONSTRUCTOR"<<std::endl;
 
-    patch_areas_ = VectorXr::Zero(this->dataProblem_.getNumNodes());
+    patch_areas_ = HeatProcess<ORDER,mydim,ndim>::computePatchAreas(dp.getMesh());
     alpha_ = dp.getHeatStep();
     niter_ = dp.getHeatIter();
     init_proposals_.resize(niter_);
@@ -248,22 +247,8 @@ HeatProcess_time<ORDER, mydim, ndim>::HeatProcess_time(const DataProblem_time<OR
     data_index_.resize(this->dataProblem_.dataSize());
     std::iota(data_index_.begin(),data_index_.end(),0);
 
-    computePatchAreas();
     computeStartingDensities();
 
-}
-
-
-//! ####
-template<UInt ORDER, UInt mydim, UInt ndim>
-void
-HeatProcess_time<ORDER, mydim, ndim>::computePatchAreas(){
-
-    for(UInt t = 0; t < this->dataProblem_.getNumElements(); ++t){
-        Element<EL_NNODES, mydim, ndim> current_element = this->dataProblem_.getElement(t);
-        for(const auto& node : current_element)
-            patch_areas_[node.id()] += current_element.getMeasure();
-    }
 }
 
 

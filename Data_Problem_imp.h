@@ -207,7 +207,7 @@ DataProblem_time<ORDER, mydim, ndim>::DataProblem_time(const std::vector<Point<n
 
     if(isTimeDiscrete) {
         deData_time_.setTimes2Locations();
-        Upsilon_indices_.resize(deData_time_.getNTimes());
+        //Upsilon_indices_.resize(deData_time_.getNTimes());
         deData_time_.printTimes2Locations(std::cout);
     }
 
@@ -292,6 +292,7 @@ void DataProblem_time<ORDER, mydim, ndim>::fillGlobalPhi(void)
 template<UInt ORDER, UInt mydim, UInt ndim>
 void DataProblem_time<ORDER, mydim, ndim>::fillTimeMass(void)
 {
+    Spline<SPLINE_DEGREE, 0> spline_0(mesh_time_);
     Assembler::operKernel(spline_, K0_);
 }
 
@@ -382,7 +383,7 @@ MatrixXr DataProblem_time<ORDER, mydim, ndim>::fillPhiQuad(UInt time_node) const
 }
 
 template<UInt ORDER, UInt mydim, UInt ndim>
-SpMat DataProblem_time<ORDER, mydim, ndim>::computeUpsilon(const SpMat &phi, const SpMat &psi) {
+SpMat DataProblem_time<ORDER, mydim, ndim>::computeUpsilon(const SpMat &phi, const SpMat &psi) const {
 
     static constexpr Real eps = std::numeric_limits<Real>::epsilon(), tolerance = 100 * eps;
 
@@ -395,7 +396,6 @@ SpMat DataProblem_time<ORDER, mydim, ndim>::computeUpsilon(const SpMat &phi, con
 
     if (deData_time_.getNTimes() != deData_time_.dataSize())
         std::cout << "WARNING: " << deData_time_.dataSize() - deData_time_.getNTimes() << " temporal duplicates!" << std::endl;
-
 /*
     std::cout << "psi" << std::endl;
     for (UInt i = 0; i < psi.rows(); ++i) {
@@ -421,16 +421,17 @@ SpMat DataProblem_time<ORDER, mydim, ndim>::computeUpsilon(const SpMat &phi, con
 
     if(deData_time_.getNTimes() != deData_time_.dataSize()) // time duplicates: phi_r < psi_r
     {
-        UInt global_row_counter = 0;
+        //UInt global_row_counter = 0;
         for(UInt i = 0; i < phi_r; ++i) {
             const std::vector<UInt>& v = deData_time_.getTimes2Locations(i);
             for(UInt j : v) {
-                Upsilon_indices_[j] = global_row_counter;
+                //Upsilon_indices_[j] = global_row_counter;
                 SpMat localKProd_(1, phi_c * psi_c);
+                std::cout << "riga phi: " << i << ", riga psi: " << j << std::endl;
                 localKProd_ = kroneckerProduct(phi.row(i), psi.row(j));
                 for (UInt idx = 0; idx < localKProd_.outerSize(); ++idx)
-                    Upsilon_tripletList.emplace_back(global_row_counter,idx,localKProd_.coeff(0, idx));
-                ++global_row_counter;
+                    Upsilon_tripletList.emplace_back(j,idx,localKProd_.coeff(0, idx));
+                //++global_row_counter;
             }
         }
     }
@@ -524,22 +525,23 @@ SpMat DataProblem_time<ORDER, mydim, ndim>::computeUpsilon(const std::vector<UIn
 
     Eigen::SparseMatrix<Real,Eigen::RowMajor> upsilon(indices.size(), Upsilon_.cols());
 
-    if(deData_time_.getNTimes() != deData_time_.dataSize()) // time duplicates
-    {
-        for(UInt i = 0; i < indices.size(); ++i) {
-            upsilon.row(i) = Upsilon_.row(Upsilon_indices_[indices[i]]);
-        }
-    }
-    else // NO time duplicates
-    {
-        for(UInt i = 0; i < indices.size(); ++i) {
-            upsilon.row(i) = Upsilon_.row(indices[i]);
-        }
+    for(UInt i = 0; i < indices.size(); ++i) {
+        //upsilon.row(i) = Upsilon_.row(Upsilon_indices_[indices[i]]);
+        upsilon.row(i) = Upsilon_.row(indices[i]);
     }
 
     upsilon.prune(tolerance);
     upsilon.makeCompressed();
-
+/*
+    std::cout << "upsilon(indices)" << std::endl;
+    for (UInt i = 0; i < upsilon.rows(); ++i) {
+        std::cout << i << "-th row: " << std::endl;
+        std::cout << std::setw(7);
+        for (UInt j = 0; j < upsilon.cols(); ++j)
+            std::cout << upsilon.coeff(i, j) << std::setw(3);
+        std::cout << std::endl;
+    }
+*/
     return upsilon;
 
 }

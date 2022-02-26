@@ -28,7 +28,7 @@ public:
     virtual const VectorXr* chooseInitialization(Real lambda) const = 0;
 };
 
-/*!  @brief A class dealing with the user's density initialization.
+/*! @brief A class dealing with the user's density initialization.
 */
 template<UInt ORDER, UInt mydim, UInt ndim>
 class UserInitialization : public DensityInitialization<ORDER, mydim, ndim>{
@@ -57,7 +57,7 @@ protected:
     std::vector<VectorXr> init_proposals_;
     // patch_areas_: for each mesh node it saves the sum of the area of each triangle that has that node
     VectorXr patch_areas_;
-    //  Parameters useful for the initialization of the density
+    // Parameters useful for the initialization of the density
     UInt niter_;
     Real alpha_;
     // Parameter to modify the initial density
@@ -68,7 +68,7 @@ protected:
     VectorXr penTerm_;
 
     //! A method to compute the patch_areas_.
-    void computePatchAreas();
+    //void computePatchAreas();
     //! A method to compute the density exploting only the data.
     VectorXr computeDensityOnlyData();
     //! A method that provides a set of starting densities.
@@ -82,6 +82,8 @@ public:
                 const FunctionalProblem<ORDER, mydim, ndim>& fp);
     //! An overridden method to compute density initialization when it needes to be choosen among the proposals given by a discretized heat diffusion process.
     const VectorXr* chooseInitialization(Real lambda) const override;
+    //! A method to compute the patch_areas_.
+    static VectorXr computePatchAreas(const MeshHandler<ORDER, mydim, ndim>& mesh);
 };
 
 
@@ -168,7 +170,7 @@ protected:
     VectorXr penSterm_, penTterm_;
 
     //! A method to compute the patch_areas_.
-    void computePatchAreas();
+    //void computePatchAreas();
     //! A method to compute the density exploiting only the data.
     //VectorXr computeDensityOnlyData();
     VectorXr computeDensityOnlyData(UInt);

@@ -157,7 +157,7 @@ private:
     bool flagMass_, flagLumped_;
     //! Indices to keep track of how Upsilon_ is filled with respect to the order in which data appear in the dataset.
     //! This data structure is useful to efficiently compute Upsilon_ during the CV preprocessing stage.
-    std::vector<UInt> Upsilon_indices_;
+    //std::vector<UInt> Upsilon_indices_;
 
     //void fillGlobalPsi(void) override;
     void fillGlobalPhi();
@@ -190,7 +190,7 @@ public:
     //! A method computing the Upsilon matrix (kronecker product between GlobalPsi_ and GlobalPhi_, calculated
     //! considering for each spatial location only the proper rows of GlobalPhi_ corresponding to the time instants
     //! when that location is observed).
-    SpMat computeUpsilon(const SpMat& phi, const SpMat& psi);
+    SpMat computeUpsilon(const SpMat& phi, const SpMat& psi) const;
     //! A method to compute the Upsilon_ matrix by considering only locations and times in the positions stored in
     //! indices. This method is needed for CV (only points that are in the considered fold are used).
     SpMat computeUpsilon(const std::vector<UInt>& indices) const;

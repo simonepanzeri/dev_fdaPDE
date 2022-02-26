@@ -48,22 +48,22 @@ int main() {
     const std::vector<Real> stepProposals{0.001};
 
     const Real tol1 = 0.00001, tol2 = 0.;
-    const UInt nsim = 5000;
+    const UInt nsim = 500;
 
     //VectorXr fvec = VectorXr::Ones(points_v.size()/ndim * (mesh_time.size()+spline_degree-1));
     //fvec = std::exp(1)*fvec;
     VectorXr fvec;
 
-    //std::string direction_method = "Gradient";
-    std::string direction_method = "BFGS";
+    std::string direction_method = "Gradient";
+    //std::string direction_method = "BFGS";
 
     std::string step_method = "Fixed_Step";
     //std::string step_method = "Backtracking_Method";
     //std::string step_method = "Wolfe_Method";
 
-    //std::string preprocess_method = "NoCrossValidation";
+    std::string preprocess_method = "NoCrossValidation";
     //std::string preprocess_method = "RightCV";
-    std::string preprocess_method = "SimplifiedCV";
+    //std::string preprocess_method = "SimplifiedCV";
 
     UInt n_folds;
     if (preprocess_method == "SimplifiedCV")
@@ -82,13 +82,15 @@ int main() {
     deData_time.setTimes2Locations();
     deData_time.printTimes2Locations(std::cout);
 */
+
     // Data problem time
-    DataProblem_time<ORDER, mydim, ndim> dataProblem_time(data_locations, data_time, 2, fvec, 0.023,
-                                                          500, lambda, lambda_time, n_folds, nsim, stepProposals,
+    DataProblem_time<ORDER, mydim, ndim> dataProblem_time(data_locations, data_time, 1, fvec, 0.1,
+                                                          10, lambda, lambda_time, n_folds, nsim, stepProposals,
                                                           tol1, tol2, true, 1, points_m, sides_m,
                                                           elements_m, neighbors_m, mesh_time,
                                                           1,0,0,0);
     std::cout << "DataProblem_time DONE" << std::endl;
+
 /*
     for (auto it = dataProblem_time.data().cbegin(); it != dataProblem_time.data().cend(); ++it) {
         std::cout << "time: " << dataProblem_time.data_time(it - dataProblem_time.data().cbegin());
@@ -98,6 +100,7 @@ int main() {
 */
     // Functional problem time
     FunctionalProblem_time<ORDER, mydim, ndim> functionalProblem_time(dataProblem_time);
+
 /*
     VectorXr g = VectorXr::Ones(dataProblem_time.getNumNodes() * dataProblem_time.getSplineNumber());
     std::tuple<Real, VectorXr, Real, Real, Real> result = functionalProblem_time.computeFunctional_g(g, 0.01, 0.01, dataProblem_time.getUpsilon());

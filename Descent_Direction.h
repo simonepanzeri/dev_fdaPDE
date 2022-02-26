@@ -13,7 +13,7 @@
 is computed inside the children according to a proper method chosen.
 */
 
-template<UInt ORDER, UInt mydim, UInt ndim, typename T = FunctionalProblem<ORDER, mydim, ndim>>
+template<UInt ORDER, UInt mydim, UInt ndim, class T = FunctionalProblem<ORDER, mydim, ndim>>
 class DirectionBase{
 protected:
     // to give generality if you want to add other children: T is a typename for FunctionalProblem (spatial problem, by
@@ -35,7 +35,7 @@ public:
 
 
 //! @brief A class for computing the gradient descent direction.
-template<UInt ORDER, UInt mydim, UInt ndim, typename T = FunctionalProblem<ORDER, mydim, ndim>>
+template<UInt ORDER, UInt mydim, UInt ndim, class T = FunctionalProblem<ORDER, mydim, ndim>>
 class DirectionGradient : public DirectionBase<ORDER, mydim, ndim, T>{
 public:
     //! A delegating constructor.
@@ -52,7 +52,7 @@ public:
 
 
 //! @brief A class for computing the BFGS descent direction.
-template<UInt ORDER, UInt mydim, UInt ndim, typename T = FunctionalProblem<ORDER, mydim, ndim>>
+template<UInt ORDER, UInt mydim, UInt ndim, class T = FunctionalProblem<ORDER, mydim, ndim>>
 class DirectionBFGS : public DirectionBase<ORDER, mydim, ndim, T>{
 private:
     MatrixXr HInit_, HOld_;

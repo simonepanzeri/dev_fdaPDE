@@ -5,7 +5,7 @@
 #ifndef DEV_FDAPDE_DESCENT_DIRECTION_IMP_H
 #define DEV_FDAPDE_DESCENT_DIRECTION_IMP_H
 
-template<UInt ORDER, UInt mydim, UInt ndim, typename T>
+template<UInt ORDER, UInt mydim, UInt ndim, class T>
 std::unique_ptr<DirectionBase<ORDER, mydim, ndim, T>>
 DirectionGradient<ORDER, mydim, ndim, T>::clone() const {
 
@@ -14,7 +14,7 @@ DirectionGradient<ORDER, mydim, ndim, T>::clone() const {
 }
 
 
-template<UInt ORDER, UInt mydim, UInt ndim, typename T>
+template<UInt ORDER, UInt mydim, UInt ndim, class T>
 VectorXr
 DirectionGradient<ORDER, mydim, ndim, T>::computeDirection(const VectorXr& g, const VectorXr& grad){
 
@@ -22,7 +22,7 @@ DirectionGradient<ORDER, mydim, ndim, T>::computeDirection(const VectorXr& g, co
 }
 
 
-template<UInt ORDER, UInt mydim, UInt ndim, typename T>
+template<UInt ORDER, UInt mydim, UInt ndim, class T>
 DirectionBFGS<ORDER, mydim, ndim, T>::DirectionBFGS(const DirectionBFGS<ORDER, mydim, ndim, T>& rhs):
         DirectionBase<ORDER, mydim, ndim, T>(rhs) {
 
@@ -33,7 +33,7 @@ DirectionBFGS<ORDER, mydim, ndim, T>::DirectionBFGS(const DirectionBFGS<ORDER, m
 }
 
 
-template<UInt ORDER, UInt mydim, UInt ndim, typename T>
+template<UInt ORDER, UInt mydim, UInt ndim, class T>
 std::unique_ptr<DirectionBase<ORDER, mydim, ndim, T>>
 DirectionBFGS<ORDER, mydim, ndim, T>::clone() const {
 
@@ -42,7 +42,7 @@ DirectionBFGS<ORDER, mydim, ndim, T>::clone() const {
 }
 
 
-template<UInt ORDER, UInt mydim, UInt ndim, typename T>
+template<UInt ORDER, UInt mydim, UInt ndim, class T>
 VectorXr
 DirectionBFGS<ORDER, mydim, ndim, T>::computeDirection(const VectorXr& g, const VectorXr& grad){
 
@@ -66,7 +66,7 @@ DirectionBFGS<ORDER, mydim, ndim, T>::computeDirection(const VectorXr& g, const 
 }
 
 
-template<UInt ORDER, UInt mydim, UInt ndim, typename T>
+template<UInt ORDER, UInt mydim, UInt ndim, class T>
 void
 DirectionBFGS<ORDER, mydim, ndim, T>::resetParameters(){
     updateH_ = false;
